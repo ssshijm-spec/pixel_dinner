@@ -1,0 +1,29 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no" />
+<title>Pixel Diner</title>
+<style>
+  html, body {
+    margin: 0; height: 100%; background: #100c18; overflow: hidden;
+    display: flex; align-items: center; justify-content: center;
+    font-family: monospace; color: #e6dcc0;
+    touch-action: none; user-select: none;
+  }
+  #game {
+    image-rendering: pixelated;
+    image-rendering: crisp-edges;
+    box-shadow: 0 0 0 2px #000, 0 8px 40px rgba(0,0,0,0.6);
+    background: #161320;
+  }
+  #boot { position: fixed; bottom: 8px; font-size: 11px; opacity: 0.4; }
+</style>
+</head>
+<body>
+  <canvas id="game" width="512" height="288"></canvas>
+  <div id="boot">click / press any key to start sound · WASD move · SPACE act</div>
+  <script type="module" src="./src/main.js"></script>
+  <script>window.addEventListener('pointerdown', () => { const b = document.getElementById('boot'); if (b) b.style.display = 'none'; }, { once: true });</script>
+</body>
+</html>
