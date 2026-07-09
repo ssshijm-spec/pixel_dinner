@@ -62,13 +62,15 @@ export const PATIENCE_BILL = 22;
 export const GRACE_FRAC = 0.45; // sat stays 1.0 for first 45% of patience, then erodes
 
 // ---- Menu (dishes) — unlocked by priceTier ---------------------------------
+// `label` is the short Korean name shown under the order/food bubble so a
+// dish is identifiable by more than color/shape alone.
 export const DISHES = [
-  { name: 'Fries', price: 8, color: 'food1' },
-  { name: 'Burger', price: 14, color: 'food2' },
-  { name: 'Ramen', price: 22, color: 'food3' },
-  { name: 'Sushi', price: 34, color: 'food4' },
-  { name: 'Steak', price: 52, color: 'food5' },
-  { name: 'Feast', price: 80, color: 'food6' },
+  { name: 'Fries', label: '감자튀김', price: 8, color: 'food1' },
+  { name: 'Burger', label: '버거', price: 14, color: 'food2' },
+  { name: 'Ramen', label: '라멘', price: 22, color: 'food3' },
+  { name: 'Sushi', label: '초밥', price: 34, color: 'food4' },
+  { name: 'Steak', label: '스테이크', price: 52, color: 'food5' },
+  { name: 'Feast', label: '잔칫상', price: 80, color: 'food6' },
 ];
 
 // ---- Spawn / reputation ----------------------------------------------------

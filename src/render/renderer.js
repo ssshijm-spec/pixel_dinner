@@ -53,7 +53,7 @@ export function drawWorld(ctx, state, alpha, time) {
     draws.push({ d: tx + ty + 0.05, fn: () => drawChar(ctx, p.x, p.y, {
       tint: c.tint, facing: c.facing, kind: 'customer', bob: moving ? time * 4 + c.id : 0, carry: null,
     }) });
-    if (c.bubble) bubbles.push({ d: tx + ty, fn: () => drawBubble(ctx, p.x, p.y, c.bubble, urg, c.dish.color) });
+    if (c.bubble) bubbles.push({ d: tx + ty, fn: () => drawBubble(ctx, p.x, p.y, c.bubble, urg, c.dish) });
   }
   // staff
   for (const s of state.staff) {

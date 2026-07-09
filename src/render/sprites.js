@@ -91,33 +91,60 @@ export function drawStove(ctx, sx, sy, active, progress) {
 
 // ---- Food / plate icon -------------------------------------------------
 // This is the primary "what dish is this?" readout (pass counter, carried
-// icon, order/food bubbles) so it renders large with a rim + highlight rather
-// than a flat color chip.
-export function drawPlate(ctx, sx, sy, colorKey) {
-  px(ctx, sx - 7, sy - 1, 14, 3, PAL.cream);
-  px(ctx, sx - 7, sy - 1, 14, 1, shade(PAL.cream, 1.1));
+// icon, order/food bubbles). Mound count/size scales with the dish's price
+// tier (food1 cheapest → food6 priciest) so dishes differ in silhouette, not
+// just hue — a second cue on top of color for telling them apart at a glance.
+// `scale` lets callers with more room (the bubble) render it larger still.
+export function drawPlate(ctx, sx, sy, colorKey, scale = 1) {
+  const s = scale;
+  px(ctx, sx - 7 * s, sy - 1 * s, 14 * s, 3 * s, PAL.cream);
+  px(ctx, sx - 7 * s, sy - 1 * s, 14 * s, 1 * s, shade(PAL.cream, 1.1));
   const c = PAL[colorKey] || PAL.food1;
-  px(ctx, sx - 5, sy - 6, 10, 6, c);
-  px(ctx, sx - 4, sy - 6, 6, 2, shade(c, 1.3));
+  const mound = (dx, dy, rx, ry, fill) => {
+    ctx.fillStyle = fill;
+    ctx.beginPath(); ctx.ellipse(sx + dx * s, sy + dy * s, rx * s, ry * s, 0, 0, Math.PI * 2); ctx.fill();
+  };
+  switch (colorKey) {
+    case 'food1': mound(0, -3, 3, 2, c); break; // Fries — one small mound
+    case 'food2': mound(0, -3.5, 4.5, 2.8, c); break; // Burger — one bigger mound
+    case 'food3': mound(-2.6, -3, 3, 2, c); mound(2.6, -3, 3, 2, shade(c, 1.15)); break; // Ramen — two
+    case 'food4': mound(-3.6, -3, 2.2, 1.7, c); mound(0, -3.6, 2.2, 1.7, shade(c, 1.15)); mound(3.6, -3, 2.2, 1.7, c); break; // Sushi — three
+    case 'food5': // Steak — one large mound with a sear stripe
+      mound(0, -3.2, 5, 3, c);
+      ctx.strokeStyle = shade(c, 0.55); ctx.lineWidth = 0.8 * s;
+      ctx.beginPath(); ctx.moveTo(sx - 2.5 * s, sy - 4.6 * s); ctx.lineTo(sx + 2 * s, sy - 1.8 * s); ctx.stroke();
+      break;
+    default: // Feast (food6) — three mixed mounds, the "combo" look
+      mound(-2.8, -3.4, 2.6, 1.9, shade(c, 1.2));
+      mound(2.6, -3.8, 2.4, 1.8, c);
+      mound(0.2, -1.8, 2.6, 1.7, shade(c, 0.85));
+  }
 }
 
 // ---- Bubble ----------------------------------------------------------------
-// dishColor: when kind === 'food', the customer's actual ordered dish color
-// (state.customers[].dish.color) — shows what they're waiting for, not a
-// generic placeholder.
-export function drawBubble(ctx, sx, sy, kind, urgency, dishColor) {
-  const y = sy - 32;
+// dish: when kind === 'food', the customer's actual ordered dish object
+// ({color, label}) — shows what they're waiting for, not a generic
+// placeholder, and names it so shape/color alone don't have to carry it.
+export function drawBubble(ctx, sx, sy, kind, urgency, dish) {
+  const isFood = kind === 'food';
+  const y = sy - 36;
+  const w = isFood ? 40 : 26, h = isFood ? 30 : 22;
   const bg = urgency > 0.6 ? '#ffd9d0' : PAL.white;
   ctx.fillStyle = bg;
-  roundRect(ctx, sx - 11, y - 10, 22, 18, 4); ctx.fill();
+  roundRect(ctx, sx - w / 2, y - h * 0.55, w, h, 6); ctx.fill();
   ctx.strokeStyle = 'rgba(15,10,23,0.3)'; ctx.lineWidth = 1;
-  roundRect(ctx, sx - 11, y - 10, 22, 18, 4); ctx.stroke();
-  px(ctx, sx - 2, y + 7, 4, 4, bg); // tail
-  if (kind === 'food') { drawPlate(ctx, sx, y - 1, dishColor || 'food1'); return; }
+  roundRect(ctx, sx - w / 2, y - h * 0.55, w, h, 6); ctx.stroke();
+  px(ctx, sx - 3, y + h * 0.45 - 1, 6, 5, bg); // tail
+  if (isFood) {
+    drawPlate(ctx, sx, y - 4, dish ? dish.color : 'food1', 1.7);
+    ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
+    outlinedText(ctx, dish ? dish.label : '', sx, y + 9, PAL.ink, 'bold 9px monospace, "Malgun Gothic", sans-serif');
+    return;
+  }
   const glyph = { order: '?', bill: '$', wait: '…', eat: '~', angry: '!' }[kind] || '?';
   const glyphColor = kind === 'bill' ? PAL.coinEdge : kind === 'angry' ? PAL.bad : PAL.ink;
   ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
-  outlinedText(ctx, glyph, sx, y - 1, glyphColor, 'bold 13px monospace, "Malgun Gothic", sans-serif');
+  outlinedText(ctx, glyph, sx, y - 1, glyphColor, 'bold 15px monospace, "Malgun Gothic", sans-serif');
 }
 function roundRect(ctx, x, y, w, h, r) {
   ctx.beginPath();
