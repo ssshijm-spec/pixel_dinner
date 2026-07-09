@@ -1,90 +1,87 @@
 # PIXEL DINER — DECISIONS.md
 
-Decisions I made where the brief left it open, plus the Phase-0 self-review:
-contradictions/risks I found by reading my own design and how I resolved each.
+브리프가 열어둔 지점에서 내가 내린 결정들, 그리고 Phase-0 자기 검증:
+내 설계를 스스로 읽으며 찾아낸 모순/리스크와 그 해결.
 
-## A. Phase-0 self-review — contradictions & risks found, and resolutions
+## A. Phase-0 자기 검증 — 발견한 모순 & 리스크, 그리고 해결
 
-**1. "Manual > auto" vs "grows while idle."**
-If hand-doing a task is always better, an away player might fall behind. These
-pull opposite ways.
-→ *Resolution:* staff are **fully self-sufficient** (balance sim: 90–99% of
-throughput is automated once hired). The manual bonus is a *speed/ubiquity* edge
-(work timers ×0.7, higher move speed, instant take-order/collect, 3-plate carry,
-being able to relieve the exact jam) — never a gate on growth. Intervening makes
-a good run *better*; absence still climbs.
+**1. "수동 > 자동" vs "방치해도 성장".**
+손으로 하는 것이 항상 낫다면, 자리를 비운 플레이어는 뒤처질 수 있다. 이 둘은
+반대 방향으로 당긴다.
+→ *해결:* 직원은 **완전히 자립적**이다(밸런스 시뮬: 고용 후 처리량의 90–99%가
+자동). 수동 보너스는 *속도/편재성* 우위(작업 타이머 ×0.7, 더 빠른 이동, 즉시
+주문/수금, 3접시 캐리, 바로 그 병목을 해소할 수 있음)일 뿐, 성장의 게이트가
+절대 아니다. 개입하면 좋은 판이 *더* 좋아지고, 부재해도 여전히 오른다.
 
-**2. Seating is a chore the brief didn't list.**
-The five named labors are order / cook / serve / pay / clean — *not* seating.
-Making the player also seat guests would overload the first 90s.
-→ *Resolution:* **auto-host.** Guests self-seat at any free table; if none, they
-queue. Seating never becomes manual, so it never needs a "hire host" upgrade.
-The five listed chores are each manual first, each automatable later.
+**2. 착석은 브리프에 없는 노동.**
+명시된 다섯 노동은 주문/조리/서빙/결제/청소 — *착석이 아니다.* 플레이어가
+착석까지 하게 하면 첫 90초가 과부하된다.
+→ *해결:* **자동 호스팅.** 손님은 빈 테이블에 스스로 앉고, 없으면 줄을 선다.
+착석은 절대 수동이 되지 않으므로 "호스트 고용" 업그레이드도 필요 없다. 명시된
+다섯 노동은 각각 먼저 수동, 나중에 자동화 대상이다.
 
-**3. Manual cooking = "hold a key at the stove." Is that a banned wait-timer?**
-The brief forbids meaningless wait timers.
-→ *Resolution:* cooking is **active, not passive** — you must be *positioned* at
-a stove and *holding* act; you can leave to do something more urgent and resume.
-Manual cook is 1.5s (vs 2.2s auto). It is the deliberate early-game "it's too
-much" pressure (Phase 2 goal), not idle waiting.
+**3. 수동 조리 = "스토브에서 키 꾹 누르기". 금지된 대기 타이머인가?**
+브리프는 의미 없는 대기 타이머를 금지한다.
+→ *해결:* 조리는 **수동적이 아니라 능동적**이다 — 스토브에 *위치*하고 act를
+*꾹 눌러야* 한다; 더 급한 걸 하러 떠났다가 돌아와 재개할 수 있다. 수동 조리는
+1.5초(자동 2.2초). 이것은 의도된 초반 "벅참" 압박(Phase 2 목표)이지, 유휴
+대기가 아니다.
 
-**4. The bottleneck recommender flickers.**
-`bottleneck()` re-evaluates every tick and legitimately changes sub-second (sim
-counts 175–284 switches/30min — good: the jam really does keep moving). But a
-HUD highlight that strobes teaches nothing.
-→ *Resolution:* the HUD applies **hysteresis** — it only re-points the "NEXT"
-ring/highlight when a new answer persists ≥0.7s *or* is already affordable. The
-raw metric is reported honestly; the *display* is stable.
+**4. 병목 추천이 깜빡인다.**
+`bottleneck()`은 매 틱 재평가되고 정당하게 초 단위 이하로 바뀐다(시뮬은 30분당
+175–284회 전환 — 좋다: 막힘이 실제로 계속 이동한다). 하지만 초 단위로 번쩍이는
+HUD 강조는 아무것도 못 가르친다.
+→ *해결:* HUD는 **히스테리시스**를 적용한다 — 새 답이 ≥0.7초 지속되거나 이미
+구매 가능할 때만 "다음" 링/강조를 옮긴다. 원시 지표는 정직하게 보고하되,
+*표시*는 안정적이다.
 
-**5. Stranded plates clog the pass over long runs.**
-A dish cooked for a guest who then rage-leaves has a `tableId` that is no longer
-`OCCUPIED`, so no waiter ever claims it — it would sit on the pass forever and
-the `pass` array would grow unbounded across an idle night.
-→ *Resolution:* `pruneStale()` runs each tick and discards plates/tickets/
-in-progress stove work whose table no longer seats a food-waiting guest. Verified
-by a 4-hour headless run: pass peaks at 5 and ends at 0; no array growth.
+**5. 남겨진 접시가 장시간 후 패스를 막는다.**
+주문 후 분노 이탈한 손님을 위해 조리된 요리는 `tableId`가 더 이상 `OCCUPIED`가
+아니므로 어떤 웨이터도 클레임하지 않는다 — 영원히 패스에 남고, 밤새 방치하면
+`pass` 배열이 무한히 커진다.
+→ *해결:* `pruneStale()`이 매 틱 돌며, 그 테이블이 더 이상 음식을 기다리는
+손님을 앉히지 않는 접시/티켓/조리 중 작업을 폐기한다. 4시간 헤드리스 실행으로
+검증: 패스는 최대 5, 최종 0; 배열 증가 없음.
 
-**6. Offline catch-up could freeze the tab.**
-8h × 20Hz = 576k steps on load.
-→ *Resolution:* the step is O(small N) and fx is cleared each iteration; a 4h run
-is 1.8s headless (157k steps/s), so 8h is ~3–4s worst case, one-time. Capped at
-`OFFLINE_CAP_SEC`. Note: with **no staff**, offline earns nothing — correct, the
-game explicitly rewards *automating* before idling, not idling from turn one.
+**6. 오프라인 정산이 탭을 얼릴 수 있다.**
+8시간 × 20Hz = 로드 시 576k 스텝.
+→ *해결:* 스텝은 O(작은 N)이고 fx는 매 반복마다 비워진다; 4시간 실행이 헤드리스
+1.8초(157k 스텝/초)이므로 8시간은 최악 ~3–4초, 1회성. `OFFLINE_CAP_SEC`로 상한.
+참고: **직원이 없으면** 오프라인 수익 0 — 올바르다. 게임은 방치 전에 *자동화*를
+명시적으로 보상하지, 처음부터 방치를 보상하지 않는다.
 
-**7. Reused table + stale order = wrong dish served.**
-After a rage-leave the table is cleaned and a *new* guest may sit; a leftover
-plate could be delivered to them.
-→ *Resolution:* covered by #5 (the stale plate is pruned the moment the first
-guest leaves, before the table is re-seated), and `applyServe` re-checks the
-current occupant is `WAIT_FOOD`.
+**7. 재사용 테이블 + 남은 주문 = 엉뚱한 요리 서빙.**
+분노 이탈 후 테이블이 청소되고 *새* 손님이 앉으면, 남은 접시가 그들에게 배달될
+수 있다.
+→ *해결:* #5로 커버됨(첫 손님이 떠나는 즉시, 테이블 재착석 전에 남은 접시가
+정리됨). 그리고 `applyServe`가 현재 착석자가 `WAIT_FOOD`인지 재확인한다.
 
-## B. Design decisions delegated to me
+## B. 나에게 위임된 설계 결정
 
-- **Single currency (coins) + prestige ★ multiplier**, not dual currency. The
-  brief bans dual-currency inflation; one currency keeps the pressure legible.
-- **Two staff roles** (Cook = back of house, Waiter = front of house) rather than
-  one-per-chore. Stoves (parallelism) and cooks (operators) are *separate* knobs,
-  which is what creates the seats↔kitchen↔serving bottleneck web.
-- **7 upgrades, geometric cost** (`base·growth^level`), each with a
-  `recommend`-weight so the shop can point at the current jam's answer. This
-  enforces "every unlock answers a bottleneck," not "I had spare cash."
-- **Prestige = Franchise** at 12k lifetime (sim: ~17–18 min), granting
-  `1+floor(√(lifetime/800))` permanent income ×. It's the long-term loop once the
-  floor is maxed (~25 min), not a wall.
-- **Fixed 20 Hz sim + interpolated render**; frame rate cannot touch balance.
-- **fx-as-data**: the sim never renders or plays sound; it appends plain events to
-  `state.fx`, drained by render/audio. This is the mechanism that lets the entire
-  game run headless in Node (balance sim + smoke test both do exactly this).
-- **Teaching without text**: a pulsing gold ring marks the single most-urgent
-  manual target, and the shop's "NEXT" ring shows distance to the recommended
-  buy. No tutorial copy anywhere.
+- **단일 화폐(코인) + 프레스티지 ★ 배수**, 이중 화폐 아님. 브리프는 이중 화폐
+  인플레이션을 금지한다; 단일 화폐가 압박을 명료하게 유지한다.
+- **직원 2역할**(요리사 = 주방, 웨이터 = 홀), 노동당 1역할이 아니라. 스토브
+  (병렬성)와 요리사(작업자)가 *분리된* 노브라서, 좌석↔주방↔서빙 병목의 웹이
+  만들어진다.
+- **업그레이드 7종, 기하급수 비용**(`base·growth^level`), 각각 `recommend`
+  가중치를 가져 상점이 현재 막힘의 답을 가리킬 수 있다. 이로써 "모든 언락은
+  병목의 답"을 강제하지, "돈이 남았다"가 아니다.
+- **프레스티지 = 프렌차이즈**, 12k 라이프타임에서(시뮬: ~17–18분), 영구 수익
+  `1+floor(√(lifetime/800))` 배를 부여. 바닥이 만렙(~25분) 된 후의 장기 루프이지
+  벽이 아니다.
+- **고정 20Hz 시뮬 + 보간 렌더**; 프레임률이 밸런스를 건드릴 수 없다.
+- **fx-를-데이터로**: 시뮬은 절대 렌더하거나 소리를 내지 않고, `state.fx`에 순수
+  이벤트를 append 하면 render/audio가 소비한다. 게임 전체를 Node에서 헤드리스로
+  돌리게 하는 메커니즘(밸런스 시뮬 + 스모크 테스트가 정확히 이렇게 한다).
+- **텍스트 없는 가르침**: 맥동하는 금색 링이 가장 급한 단일 수동 대상을 표시하고,
+  상점의 "다음" 링이 추천 구매까지의 거리를 보여준다. 어디에도 튜토리얼 문구 없음.
 
-## C. Rejected alternatives
+## C. 기각한 대안
 
-- *Grid A\* pathfinding* — rejected; the floor is open, straight-line steering +
-  y-sort reads correctly and keeps movement forgiving (coyote-ish reach radius).
-- *Per-chore staff types (5 roles)* — rejected as micro-heavy; two roles already
-  produce the full bottleneck chain.
-- *Conveyor/robot automation tier* — cut for scope; staff-as-automatons already
-  satisfy "automation must be a visible body on the floor." Left as a growth hook.
-- *Dual currency (coins + gems)* — rejected per anti-pattern list.
+- *그리드 A\* 길찾기* — 기각; 바닥이 트여 있어 직선 스티어링 + y-정렬이 올바르게
+  읽히고 이동을 관용적으로(코요테 수준 반경) 유지한다.
+- *노동당 직원 타입(5역할)* — 마이크로 과다로 기각; 2역할로 이미 전체 병목
+  체인이 만들어진다.
+- *컨베이어/로봇 자동화 티어* — 스코프상 컷; 직원-자동개체가 이미 "자동화는 바닥
+  위의 보이는 몸이어야 한다"를 충족한다. 성장 훅으로 남겨둠.
+- *이중 화폐(코인 + 젬)* — 안티패턴 목록에 따라 기각.

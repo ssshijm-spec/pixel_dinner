@@ -1,106 +1,105 @@
 # PIXEL DINER — BALANCE.md
 
-All numbers live in `src/sim/constants.js`. This file explains them and records
-the headless-simulation evidence. **Nothing here was tuned by feel** — every
-curve was read off `node sim/balance-sim.js`.
+모든 수치는 `src/sim/constants.js`에 있다. 이 문서는 그것을 설명하고 헤드리스
+시뮬레이션 근거를 기록한다. **여기 있는 어떤 것도 감으로 튜닝하지 않았다** —
+모든 곡선은 `node sim/balance-sim.js`에서 읽어냈다.
 
-## 1. Methodology
+## 1. 방법론
 
-`sim/balance-sim.js` runs the *real* pure sim (no browser) with:
-- a **competent virtual player** that greedily keeps food flowing (serve → pick
-  up → cook → take order → collect → clean, nearest-first), moving with the same
-  acceleration model as a human; and
-- an **auto-buyer** that once per second buys whatever `bottleneck()` recommends.
+`sim/balance-sim.js`는 *실제* 순수 시뮬(브라우저 없음)을 다음과 함께 돌린다:
+- **유능한 가상 플레이어**: 음식 흐름을 탐욕적으로 유지(서빙 → 픽업 → 조리 →
+  주문 → 수금 → 청소, 최근접 우선), 사람과 같은 가속 모델로 이동; 그리고
+- **자동 구매자**: 초당 한 번 `bottleneck()`이 추천하는 것을 구매.
 
-It prints a 5-minute progression table and the four required health metrics.
-Because the sim IS the game logic, these numbers are exactly what the browser
-build runs.
+5분 진행 표와 필수 건강 지표 4개를 출력한다. 시뮬이 곧 게임 로직이므로, 이
+수치들은 브라우저 빌드가 돌리는 것과 정확히 같다.
 
-## 2. Core tables
+## 2. 핵심 표
 
-### Work durations (seconds) — manual gets ×0.7
-| task | auto | manual |
-|------|-----:|-------:|
-| take order | 0.50 | 0.35 |
-| cook       | 2.20 | 1.54 |
-| serve      | 0.35 | 0.25 |
-| collect    | 0.50 | 0.35 |
-| clean      | 1.00 | 0.70 |
+### 작업 소요 시간(초) — 수동은 ×0.7
+| 작업 | 자동 | 수동 |
+|------|-----:|-----:|
+| 주문 받기 | 0.50 | 0.35 |
+| 조리       | 2.20 | 1.54 |
+| 서빙       | 0.35 | 0.25 |
+| 수금       | 0.50 | 0.35 |
+| 청소       | 1.00 | 0.70 |
 
-Move speed: player **3.4** t/s, waiter **2.5**, cook **2.3** (×`1+0.12·staffSpeed`).
-Manual is faster *and* omnipresent → intervening always helps, never required.
+이동 속도: 플레이어 **3.4** t/s, 웨이터 **2.5**, 요리사 **2.3**
+(×`1+0.12·staffSpeed`). 수동은 더 빠르고 *동시에* 어디에나 있다 → 개입은 항상
+도움이 되지, 결코 필수가 아니다.
 
-### Customer patience (seconds) & satisfaction
-`order 16 · food 26 · bill 22 · queue 18`. Satisfaction holds at 1.0 for the
-first 45% of a stage, then erodes linearly to 0 at timeout. Timeout on order/food
-= **rage-leave** (no pay, −1.4 rep); timeout on bill = dine-and-dash (no pay).
-Payment `= price · (0.55 + 0.65·sat) · ★`.
+### 손님 인내심(초) & 만족도
+`주문 16 · 음식 26 · 계산 22 · 대기줄 18`. 만족도는 한 단계의 처음 45% 동안
+1.0을 유지하다가 타임아웃에서 0까지 선형 감소. 주문/음식 타임아웃 =
+**분노 이탈**(결제 없음, −1.4 rep); 계산 타임아웃 = 먹튀(결제 없음).
+결제 `= price · (0.55 + 0.65·sat) · ★`.
 
-### Menu (unlocked by Better Menu tier: 2 + level)
+### 메뉴 (Better Menu 티어로 언락: 2 + level)
 `Fries 8 · Burger 14 · Ramen 22 · Sushi 34 · Steak 52 · Feast 80`.
 
-### Upgrades — cost `= base · growth^level`
-| upgrade | base | growth | max | effect |
-|---------|-----:|------:|----:|--------|
-| Hire Cook   | 15 | 1.90 | 6 | +1 cook (first = first automation) |
-| Hire Waiter | 32 | 1.85 | 6 | +1 waiter (front of house) |
-| Add Table   | 26 | 1.55 | 6 | +1 seat (start 2 → max 8) |
-| Add Stove   | 40 | 1.70 | 4 | +1 parallel cook slot (start 2 → 6) |
-| Better Menu | 60 | 3.20 | 5 | unlock pricier dishes |
-| Faster Staff| 90 | 2.40 | 5 | +12% staff speed & work / level |
-| Marketing   | 50 | 2.10 | 6 | faster arrivals |
+### 업그레이드 — 비용 `= base · growth^level`
+| 업그레이드 | base | growth | max | 효과 |
+|-----------|-----:|------:|----:|------|
+| Hire Cook   | 15 | 1.90 | 6 | 요리사 +1 (첫 개는 첫 자동화) |
+| Hire Waiter | 32 | 1.85 | 6 | 웨이터 +1 (홀) |
+| Add Table   | 26 | 1.55 | 6 | 좌석 +1 (2에서 시작 → 최대 8) |
+| Add Stove   | 40 | 1.70 | 4 | 병렬 조리 슬롯 +1 (2에서 시작 → 6) |
+| Better Menu | 60 | 3.20 | 5 | 더 비싼 메뉴 언락 |
+| Faster Staff| 90 | 2.40 | 5 | 레벨당 직원 속도 & 작업 +12% |
+| Marketing   | 50 | 2.10 | 6 | 손님 도착 빨라짐 |
 
-Spawn interval `= 5.2 / (1 + rep·0.05 + marketing·0.6)`, floor 0.55s, ±20% jitter.
-Prestige (Franchise) at **12 000** lifetime → `★ = 1 + floor(√(lifetime/800))`.
+스폰 간격 `= 5.2 / (1 + rep·0.05 + marketing·0.6)`, 하한 0.55초, ±20% 지터.
+프레스티지(프렌차이즈)는 **12,000** 라이프타임에서 → `★ = 1 + floor(√(lifetime/800))`.
 
-First Cook costs 15; the first 1–2 guests pay ~8–14 each → **first automation is
-affordable inside ~60–85s** (see metrics).
+첫 요리사는 15코인; 처음 1–2명이 각 ~8–14코인 결제 → **첫 자동화는 ~60–85초 안에
+구매 가능**(지표 참고).
 
-## 3. Simulation evidence
+## 3. 시뮬레이션 근거
 
-### 60-minute progression (seed 12345)
+### 60분 진행 (seed 12345)
 ```
- min |  money | lifetime | rep | ck wt tb st | served | auto% | idle% | bottleneck
-   0 |     12 |        0 |   0 |  0  0  2  2 |      0 |    0% |  100% | (bootstrap)
-   5 |     69 |     1320 |  13 |  2  3  8  4 |     81 |   96% |    6% | Better Menu
-  10 |    827 |     4977 |  35 |  2  4  8  5 |    211 |   98% |    3% | Better Menu
-  15 |   5055 |     9580 |  57 |  2  5  8  5 |    338 |   99% |    2% | Better Menu
-  20 |    432 |    16628 |  81 |  2  5  8  5 |    483 |   97% |    1% | Marketing
-  25 |   1773 |    23059 | 107 |  6  6  8  6 |    638 |   95% |    1% | Hire Cook
-  40 |  21457 |    42743 | 187 |  6  6  8  6 |   1115 |   96% |    1% | Hire Cook
-  60 |  48203 |    69489 | 294 |  6  6  8  6 |   1750 |   96% |    1% | Hire Cook
+ 분 |  money | lifetime | rep | ck wt tb st | served | auto% | idle% | bottleneck
+  0 |     12 |        0 |   0 |  0  0  2  2 |      0 |    0% |  100% | (부트스트랩)
+  5 |     69 |     1320 |  13 |  2  3  8  4 |     81 |   96% |    6% | Better Menu
+ 10 |    827 |     4977 |  35 |  2  4  8  5 |    211 |   98% |    3% | Better Menu
+ 15 |   5055 |     9580 |  57 |  2  5  8  5 |    338 |   99% |    2% | Better Menu
+ 20 |    432 |    16628 |  81 |  2  5  8  5 |    483 |   97% |    1% | Marketing
+ 25 |   1773 |    23059 | 107 |  6  6  8  6 |    638 |   95% |    1% | Hire Cook
+ 40 |  21457 |    42743 | 187 |  6  6  8  6 |   1115 |   96% |    1% | Hire Cook
+ 60 |  48203 |    69489 | 294 |  6  6  8  6 |   1750 |   96% |    1% | Hire Cook
 ```
-Bottleneck marches order→kitchen→seats→menu→marketing→kitchen as each jam is
-answered — exactly the intended web. Full build reached ~min 25; after that,
-lifetime keeps climbing toward repeated Franchise resets.
+병목이 주문→주방→좌석→메뉴→마케팅→주방 순으로 각 막힘이 해결될 때마다 행진한다
+— 의도한 웹 그대로. 풀 빌드는 ~25분에 도달; 이후 라이프타임은 반복 프렌차이즈
+리셋을 향해 계속 오른다.
 
-### Required metrics (mean over seeds 1, 777, 40404, 12345)
-| metric | value |
-|--------|------:|
-| **TTFA** (first automation) | **34–83 s** (competent bot; always < 90 s) |
-| **Automation rate**, full hour | **95–98%** |
-| Automation rate, last 10 min | 90–99% |
-| **Player idle-time ratio** | **0.7–1.1%** (almost never nothing to do) |
-| **Bottleneck switches / hr** | ~350–500 (jam constantly moves; HUD smooths display) |
-| Rage rate | 0.0–0.1% of arrivals (with an attentive player) |
+### 필수 지표 (seed 1, 777, 40404, 12345 평균)
+| 지표 | 값 |
+|------|---:|
+| **TTFA** (첫 자동화) | **34–83초** (유능한 봇; 항상 90초 미만) |
+| **자동화율**, 한 시간 | **95–98%** |
+| 자동화율, 마지막 10분 | 90–99% |
+| **플레이어 유휴 비율** | **0.7–1.1%** (할 일 없는 순간이 거의 없음) |
+| **병목 전환 / 시간** | ~350–500 (막힘이 끊임없이 이동; HUD는 표시를 매끄럽게) |
+| 분노율 | 도착의 0.0–0.1% (주의 깊은 플레이어 기준) |
 
-TTFA note: the bot has no reaction delay, so its 34s is a floor; a first-time
-human lands ~60–90s, still inside the target.
+TTFA 참고: 봇은 반응 지연이 없으므로 34초는 하한이다; 처음 하는 사람은 ~60–90초에
+도달하며, 여전히 목표 안이다.
 
-### 4-hour stability / peak load (seed 7, everything maxed, no player)
+### 4시간 안정성 / 피크 부하 (seed 7, 전부 만렙, 플레이어 없음)
 ```
-4h sim in 1836 ms  =>  157k steps/sec (~7800× realtime)
-peak customers 44 · peak pass 5 · staff 12
-end arrays: customers 40 · pass 0 · tickets 0   (no unbounded growth)
-served 7322 · raged 0 · lifetime 304923
+4h 시뮬 1836 ms  =>  157k 스텝/초 (~7800× 실시간)
+피크 손님 44 · 피크 패스 5 · 직원 12
+종료 배열: 손님 40 · 패스 0 · 티켓 0   (무한 증가 없음)
+서빙 7322 · 분노 0 · 라이프타임 304923
 ```
-Confirms `pruneStale()` keeps queues bounded and offline catch-up is cheap.
+`pruneStale()`이 큐를 제한하고 오프라인 정산이 값싸다는 것을 확인.
 
-## 4. Anti-pattern audit
-- **No meaningless timers** — every timer is a customer/cook doing a visible act.
-- **No growth wall** — costs are geometric but income scales with rep+menu+★; the
-  sim never stalls.
-- **No dual-currency inflation** — one currency.
-- **No click-grind** — manual play is movement + a single context action.
-- **Idle never dominates active** — offline earns only what your crew earns, and
-  an attending player strictly outperforms (manual bonus + jam relief).
+## 4. 안티패턴 감사
+- **의미 없는 타이머 없음** — 모든 타이머는 손님/요리사가 하는 보이는 행동.
+- **성장 벽 없음** — 비용은 기하급수지만 수익이 rep+메뉴+★로 스케일; 시뮬은 절대
+  멈추지 않는다.
+- **이중 화폐 인플레이션 없음** — 단일 화폐.
+- **클릭 노가다 없음** — 수동 플레이는 이동 + 단일 상황 행동.
+- **방치가 액티브를 압도하지 않음** — 오프라인은 크루가 버는 것만 벌고, 개입하는
+  플레이어가 엄격히 더 낫다(수동 보너스 + 병목 해소).

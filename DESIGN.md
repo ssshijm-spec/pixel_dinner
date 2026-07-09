@@ -1,96 +1,95 @@
 # PIXEL DINER — DESIGN.md
 
-Quarter-view pixel-art restaurant tycoon. You start by carrying every plate
-yourself. You end by watching a machine of little people run a restaurant that
-never needed you — and yet you still *want* to jump in.
+쿼터뷰 픽셀아트 식당 타이쿤. 처음에는 모든 접시를 직접 나른다. 결국에는
+당신 없이도 돌아가는 작은 사람들의 기계 같은 식당을 지켜보게 된다 — 그런데도
+여전히 뛰어들고 싶어진다.
 
-## 1. Concept
+## 1. 컨셉
 
-A single-screen isometric diner. Customers walk in, sit, order, eat, pay, leave.
-Every link in that chain is at first a **manual chore the player physically
-performs**, and every link is later a **visible automaton** (a hired worker or a
-machine) doing the same physical walk. Nothing is ever "converted to a number
-that ticks up". Automation is always a body on the floor.
+한 화면짜리 아이소메트릭 식당. 손님이 들어와 앉고, 주문하고, 먹고, 계산하고,
+떠난다. 이 흐름의 모든 고리는 처음에는 **플레이어가 몸으로 직접 하는 노동**이고,
+나중에는 같은 물리적 이동을 대신하는 **눈에 보이는 자동 개체**(고용한 직원이나
+설비)가 된다. 숫자만 올라가는 자동화는 절대 없다. 자동화는 언제나 바닥 위를
+걸어다니는 몸이다.
 
-## 2. The core loop (three nested layers)
-
-```
-  ARCADE            DELEGATION            EXPANSION
-  (your hands)  →   (their hands)     →   (the empire)
-  ─────────────     ─────────────         ─────────────
-  walk, carry,      hire cooks &          buy tables, stoves,
-  cook, serve,      waiters that do       menu tiers, marketing,
-  collect, clean    the same walks        then FRANCHISE (prestige)
-```
-
-The layers **stack, they don't replace**:
-
-- Layer 1 never dies. A hand-carried plate is always ~30% faster than a waiter's,
-  and only the player can "rush" a table. So even at full automation, grabbing a
-  backed-up plate yourself is the correct, satisfying move.
-- Layer 2 is the payoff of Layer 1's pain. You automate the exact chore that was
-  hurting.
-- Layer 3 is what you spend Layer 2's surplus on, and it re-creates Layer 1's
-  pain one tier up (more seats than the kitchen can feed).
-
-## 3. The bottleneck web (why every purchase is forced, not optional)
-
-Every upgrade is the **answer to a visible jam**, never "I have spare cash":
+## 2. 핵심 루프 (3중 중첩 계층)
 
 ```
- cook is slow  ─hire Cook→  plates pile at the pass (nobody carries)
+  아케이드            위임                  확장
+  (내 손)         →  (그들의 손)        →  (제국)
+  ─────────────      ─────────────         ─────────────
+  걷고, 나르고,      요리사·웨이터를        테이블·스토브·메뉴 티어·
+  요리하고, 서빙,    고용해 같은 이동을     마케팅을 구매하다가,
+  결제, 청소         대신하게 한다          결국 프렌차이즈(프레스티지)
+```
+
+계층은 **서로를 대체하지 않고 쌓인다**:
+
+- 1계층은 죽지 않는다. 손으로 나른 접시는 항상 웨이터보다 ~30% 빠르고, 오직
+  플레이어만 테이블을 "재촉"할 수 있다. 그래서 완전 자동화 상태에서도, 밀려 있는
+  접시를 직접 낚아채는 것이 여전히 옳고 만족스러운 수(手)다.
+- 2계층은 1계층의 고통에 대한 보상이다. 정확히 나를 아프게 한 그 공정을
+  자동화한다.
+- 3계층은 2계층의 잉여를 쓰는 곳이고, 이는 한 티어 위에서 1계층의 고통을 다시
+  만든다(주방이 감당할 수 없는 만큼 좌석이 늘어난다).
+
+## 3. 병목의 웹 (모든 구매가 선택이 아니라 강제인 이유)
+
+모든 업그레이드는 **눈에 보이는 막힘에 대한 답**이지, "돈이 남아서"가 아니다:
+
+```
+ 요리가 느림  ─요리사 고용→  접시가 패스에 쌓인다(아무도 안 나름)
       │                                   │
       ▼                                   ▼
- add Stove ◄─ kitchen can't ──┐     hire Waiter → seats never free up
+ 스토브 추가 ◄─ 주방이 못 ────┐     웨이터 고용 → 좌석이 안 빠진다
                               │           │
                               │           ▼
-                     ◄────────┴──── add Table → kitchen falls behind again ↑
+                     ◄────────┴──── 테이블 추가 → 주방이 다시 밀린다 ↑
 ```
 
-The jam is **always readable on the floor** without reading the HUD:
-- orders un-taken → customers flash a **?** and redden
-- plates not carried → a **stack grows on the pass counter**
-- seats full → a **queue snakes out the door**
-- table not cleaned → it sits **dirty and unusable**
-- a worker with nothing to do stands **idle and grey** (you over-bought)
+막힘은 **항상 HUD를 읽지 않고도 바닥에서 읽힌다**:
+- 주문이 안 받아짐 → 손님이 **?** 를 깜빡이며 붉어진다
+- 접시를 안 나름 → **패스 위에 접시 더미가 쌓인다**
+- 좌석이 참 → **문 밖으로 줄이 늘어선다**
+- 테이블 청소 안 됨 → **더러운 채로 못 쓴다**
+- 할 일 없는 직원 → **회색으로 멍하니 서 있다**(과잉 구매의 신호)
 
-## 4. First 90 seconds (no tutorial text — space teaches)
+## 4. 첫 90초 (튜토리얼 텍스트 없이 — 공간이 가르친다)
 
-1. A customer walks in, auto-seats, and a **?** bubble pulses over them. A soft
-   ring highlights them. You walk over; proximity auto-takes the order.
-2. The order appears as a ticket on a **glowing stove**. You walk to it; it cooks.
-3. A plate pops onto the **pass** with a chime + arrow toward the waiting table.
-4. You carry it, drop it, coins burst. A progress ring on the HUD —
-   **"NEXT: COOK"** — has been filling the whole time.
-5. It fills. The Cook button pulses. You buy it. A little chef walks out of the
-   kitchen door and starts cooking on their own. **First automation, < 90s.**
+1. 손님이 들어와 자동으로 착석하고, 머리 위에 **?** 말풍선이 뛴다. 부드러운
+   링이 손님을 강조한다. 다가가면 근접만으로 주문이 접수된다.
+2. 주문이 **빛나는 스토브** 위에 티켓으로 나타난다. 다가가면 요리된다.
+3. **패스** 위에 접시가 팝 하고 올라온다(칭 소리 + 기다리는 테이블 방향 화살표).
+4. 접시를 나른다. 내려놓으면 코인이 터진다. HUD의 진행 링 — **"다음: 요리사"** —
+   이 그동안 계속 차 오르고 있었다.
+5. 링이 찬다. 요리사 버튼이 맥동한다. 구매한다. 작은 셰프가 주방 문에서 걸어
+   나와 스스로 요리하기 시작한다. **첫 자동화, 90초 이내.**
 
-Everything is taught by highlight, arrow, and the physical shape of the jam.
-There is not one sentence of tutorial copy.
+모든 것을 강조, 화살표, 그리고 막힘의 물리적 형태로 가르친다. 튜토리얼 문구는
+단 한 문장도 없다.
 
-## 5. Emotional curve
+## 5. 감정 곡선
 
 ```
- tension │      pain        relief    pain'    relief'
-         │      ╱╲          ╱          ╱╲        ╱
-         │     ╱  ╲   hire ╱   buy    ╱  ╲ hire ╱   ... → calm mastery
-         │    ╱    ╲  cook╱   table  ╱    ╲waiter
-         │___╱      ╲╱________________╱      ╲╱__________
-             overwhelmed → automated → overwhelmed one tier up → automated
+ 긴장 │      고통        해소     고통'    해소'
+      │      ╱╲          ╱          ╱╲        ╱
+      │     ╱  ╲   요리사╱   테이블 ╱  ╲웨이터╱   ... → 차분한 숙련
+      │    ╱    ╲  고용 ╱   구매   ╱    ╲고용 ╱
+      │___╱      ╲╱________________╱      ╲╱__________
+          벅참 → 자동화됨 → 한 티어 위에서 다시 벅참 → 자동화됨
 ```
 
-Each cycle is ~60–120s early, stretching as the empire grows. Prestige
-("Franchise") resets the floor for a permanent ★ multiplier and a fresh, faster
-climb — the long-term goal.
+각 사이클은 초반 ~60–120초, 제국이 커질수록 길어진다. 프레스티지("프렌차이즈")는
+영구 ★ 배수를 위해 바닥을 리셋하고, 더 빠른 재등반을 시작한다 — 장기 목표.
 
-## 6. Feedback contract (never a dead screen)
+## 6. 피드백 계약 (절대 죽은 화면 없음)
 
-- No 3-second stretch is ever silent: customers stream in, workers walk, coins
-  arc, the reputation ticker drifts, ambient diner tones play.
-- Every value gain fires: eased number popup, coin particles, procedural blip,
-  a 1–2px scale punch, a sub-pixel screen shake.
-- The "distance to next goal" is always on screen (unlock ring / recommended buy).
-- Offline return plays a **coin-shower summary** of what the automatons earned.
+- 3초 이상 조용한 순간은 없다: 손님이 밀려들고, 직원이 걷고, 코인이 튀고,
+  평판 티커가 흐른다, 앰비언트 사운드가 깔린다.
+- 모든 가치 획득이 발동한다: 이징된 숫자 팝업, 코인 파티클, 절차적 블립,
+  1–2px 스케일 펀치, 서브픽셀 스크린 셰이크.
+- "다음 목표까지의 거리"가 항상 화면에 있다(언락 링 / 추천 구매).
+- 오프라인 복귀 시 자동 개체들이 번 것을 **코인 샤워 요약**으로 연출한다.
 
-See SPEC.md for entities, state machines, events, and numbers; DECISIONS.md for
-the trade-offs; BALANCE.md for the tuned tables.
+엔티티·상태 머신·이벤트·수치는 SPEC.md, 트레이드오프는 DECISIONS.md, 튜닝된
+표는 BALANCE.md 참고.

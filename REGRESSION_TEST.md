@@ -1,67 +1,75 @@
 # PIXEL DINER — REGRESSION_TEST.md
 
-Manual, play-scenario regression checklist. Run after any change. Serve with
-`python3 -m http.server` (or `npm run serve`) and open `index.html`.
-Automated backstops before manual testing:
-- `node sim/balance-sim.js` → prints the progression table + metrics (logic).
-- headless render smoke (stubs canvas): 4000 frames, 0 errors (render path).
+수동, 플레이 시나리오 기반 회귀 체크리스트. 변경 후 실행할 것.
+`python -m http.server`(또는 `npm run serve`)로 서빙하고 `index.html`을 연다.
+수동 테스트 전 자동 방어선:
+- `node sim/balance-sim.js` → 진행 표 + 지표 출력(로직).
+- 헤드리스 렌더 스모크(캔버스 스텁): 4000프레임, 에러 0(렌더 경로).
 
-Legend: ☐ = check.
+범례: ☐ = 확인.
 
-## Phase 1 — Core
-- ☐ Page loads with **zero console errors**.
-- ☐ Isometric floor renders; kitchen at top, door at bottom; palette consistent.
-- ☐ Characters y-sort: the player can walk **behind** a table (table drawn over).
-- ☐ Window resize keeps integer scaling, crisp pixels (no blur).
-- ☐ Movement has weight (accel/decel); diagonal isn't faster than cardinal.
+## Phase 1 — 코어
+- ☐ 페이지 로드 시 **콘솔 에러 0**.
+- ☐ 아이소메트릭 바닥 렌더; 주방 상단, 문 하단; 팔레트 일관.
+- ☐ 캐릭터 y-정렬: 플레이어가 테이블 **뒤로** 걸을 수 있음(테이블이 위에 그려짐).
+- ☐ 창 리사이즈 시 정수 스케일링 유지, 선명한 픽셀(뭉개짐 없음).
+- ☐ 이동에 무게감(가속/감속); 대각선이 직선보다 빠르지 않음.
 
-## Phase 2 — Manual loop
-- ☐ A customer enters, auto-seats, shows a **?** bubble.
-- ☐ Walking to them + SPACE takes the order; a ticket appears on a glowing stove.
-- ☐ Holding SPACE at the stove fills its bar; a plate pops onto the pass (chime).
-- ☐ SPACE at the pass picks up the plate (carry pip shows count up to 3).
-- ☐ SPACE at the table serves it; customer eats, then shows a **$** bubble.
-- ☐ SPACE collects the bill → coins burst, money jumps, table turns **dirty**.
-- ☐ Holding SPACE at a dirty table cleans it (progress bar) → table reusable.
-- ☐ Ignoring a customer past patience → **rage-leave** (red ✗, shake, rep drops).
-- ☐ It feels *busy* with 2–3 tables — the intended "too much" pressure.
+## Phase 2 — 수동 루프
+- ☐ 손님이 들어와 자동 착석, **?** 말풍선 표시.
+- ☐ 다가가서 SPACE로 주문 접수; 빛나는 스토브에 티켓 등장.
+- ☐ 스토브에서 SPACE 꾹 → 바 채워짐; 접시가 패스로 팝(칭 소리).
+- ☐ 패스에서 SPACE로 접시 픽업(캐리 핍이 최대 3까지 카운트).
+- ☐ 테이블에서 SPACE로 서빙; 손님이 먹고 나서 **$** 말풍선 표시.
+- ☐ SPACE로 수금 → 코인 터짐, 돈 상승, 테이블 **더러워짐**.
+- ☐ 더러운 테이블에서 SPACE 꾹으로 청소(진행 바) → 테이블 재사용 가능.
+- ☐ 인내심 초과까지 손님 방치 → **분노 이탈**(붉은 ✗, 셰이크, rep 하락).
+- ☐ 테이블 2–3개에서 *벅찬* 느낌 — 의도한 "너무 많다" 압박.
 
-## Phase 3 — Feedback
-- ☐ Every coin gain: eased +N popup, coin particles, blip, scale-punch, micro-shake.
-- ☐ Bubbles redden as patience runs low.
-- ☐ HUD shows money, rep, queue, plates, dirty count, mood %.
-- ☐ The **NEXT** ring fills toward the recommended upgrade and flags ▲ when affordable.
-- ☐ No 3-second dead screen — customers/coins/staff always moving.
+## Phase 3 — 피드백
+- ☐ 모든 코인 획득: 이징 +N 팝업, 코인 파티클, 블립, 스케일 펀치, 미세 셰이크.
+- ☐ 인내심이 줄면 말풍선이 붉어짐.
+- ☐ HUD에 돈, rep, 대기줄, 접시, 더러운 수, 기분% 표시.
+- ☐ **다음** 링이 추천 업그레이드를 향해 차오르고 구매 가능 시 ▲ 표시.
+- ☐ 3초 죽은 화면 없음 — 손님/코인/직원이 항상 움직임.
 
-## Phase 4 — Automation
-- ☐ Buying **Hire Cook** spawns a chef who walks to stoves and cooks on their own.
-- ☐ Buying **Hire Waiter** spawns a waiter who takes orders, carries, collects, cleans.
-- ☐ Over-buying staff → idle workers stand **grey** at their home spot.
-- ☐ Automating cooking makes serving visibly back up (plates stack on the pass) —
-  the next bottleneck appears **on the floor**, and the shop highlight moves to it.
-- ☐ The recommended-buy highlight is **stable** (no sub-second strobe).
+## Phase 4 — 자동화
+- ☐ **Hire Cook** 구매 시 셰프가 스토브로 걸어가 스스로 요리.
+- ☐ **Hire Waiter** 구매 시 웨이터가 주문/나르기/수금/청소를 수행.
+- ☐ 직원 과잉 구매 → 유휴 직원이 홈 스팟에 **회색으로** 서 있음.
+- ☐ 조리 자동화 시 서빙이 눈에 띄게 밀림(접시가 패스에 쌓임) — 다음 병목이
+  **바닥에** 나타나고 상점 강조가 그리로 이동.
+- ☐ 추천 구매 강조가 **안정적**(초 단위 번쩍임 없음).
 
-## Phase 5 — Growth / save
-- ☐ Add Table / Add Stove visibly add furniture; capacity rises.
-- ☐ Better Menu introduces pricier dishes (higher payouts).
-- ☐ Refresh the page → money, upgrades, staff, positions restored.
-- ☐ Close the tab for >30s, reopen → **offline summary** overlay + coin shower;
-  earnings match roughly what the crew would have made (0 if you had no staff).
-- ☐ Number keys 1–7 buy upgrades; **M** mutes; behaviour matches clicking.
+## Phase 5 — 성장 / 저장
+- ☐ Add Table / Add Stove가 가구를 눈에 띄게 추가; 용량 상승.
+- ☐ Better Menu가 더 비싼 메뉴 도입(높은 결제).
+- ☐ 페이지 새로고침 → 돈, 업그레이드, 직원, 위치 복원.
+- ☐ 탭을 >30초 닫았다 열기 → **오프라인 요약** 오버레이 + 코인 샤워;
+  수익이 크루가 벌었을 양과 대략 일치(직원 없으면 0).
+- ☐ 숫자 키 1–7로 업그레이드 구매; **M** 음소거; 클릭과 동작 일치.
 
-## Phase 6 — Meta
-- ☐ Franchise button is locked until 12k lifetime, then pulses gold.
-- ☐ Prestige resets the floor, keeps ★ multiplier, replays faster; ★ shows in HUD.
+## Phase 6 — 메타
+- ☐ 프렌차이즈 버튼은 12k 라이프타임까지 잠김, 이후 금색 맥동.
+- ☐ 프레스티지가 바닥 리셋, ★ 배수 유지, 더 빠른 재플레이; ★가 HUD에 표시.
 
-## Phase 7 — Balance
-- ☐ `node sim/balance-sim.js 60` prints a full table; TTFA < 90s; auto% > 90%;
-  idle% low; rage% ~0 with the bot.
+## Phase 7 — 밸런스
+- ☐ `node sim/balance-sim.js 60`이 전체 표 출력; TTFA < 90초; auto% > 90%;
+  idle% 낮음; 봇 기준 분노% ~0.
 
-## Phase 8 — Polish / stability
-- ☐ Console stays clean through a full 30-min session.
-- ☐ Sustained play: no memory growth, pass/queue stay bounded (backed by the 4h
-  headless run: pass peaks at 5, ends at 0).
-- ☐ At peak visual load (busy floor + coin shower) motion stays smooth.
-  *(Live 500-sprite/60fps measurement is a browser check — see Residual Risks in
-  the final report; sim cost is negligible at 157k steps/s headless.)*
-- ☐ Tab-switch away and back: no runaway catch-up, no spiral-of-death.
+## Phase 8 — 마감 / 안정성
+- ☐ 30분 세션 내내 콘솔 클린 유지.
+- ☐ 지속 플레이: 메모리 증가 없음, 패스/대기줄 제한 유지(4시간 헤드리스 실행이
+  뒷받침: 패스 최대 5, 최종 0).
+- ☐ 피크 시각 부하(붐비는 바닥 + 코인 샤워)에서 움직임이 매끄러움.
+  *(라이브 500-스프라이트/60fps 측정은 브라우저 확인 — 최종 보고의 남은 리스크
+  참고; 시뮬 비용은 헤드리스 157k 스텝/초로 무시할 수준.)*
+- ☐ 탭 전환 이탈 후 복귀: 폭주하는 정산 없음, 죽음의 소용돌이 없음.
+
+## Phase 9 — 모바일 / 터치
+- ☐ 세로 폰에서 "가로로 돌려주세요" 안내 표시, 가로로 돌리면 사라짐.
+- ☐ 캔버스가 폰 화면에 맞게 축소(잘리지 않음).
+- ☐ 왼쪽 드래그로 가상 조이스틱 이동; 오른쪽 ACT 버튼으로 행동(탭 = 주문/서빙/
+  수금, 꾹 = 조리/청소).
+- ☐ 멀티터치: 한 손가락 이동 + 다른 손가락 ACT 동시 동작.
+- ☐ 상점/업그레이드 버튼 탭으로 구매됨.
