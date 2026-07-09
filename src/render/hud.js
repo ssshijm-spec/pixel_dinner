@@ -42,10 +42,10 @@ export function drawHud(ctx, state, hud, time) {
   ctx.fillStyle = 'rgba(15,10,23,0.55)'; ctx.fillRect(0, 0, PANEL_X, 26);
   const punch = 1 + hud.moneyPunch * 0.35;
   ctx.textAlign = 'left'; ctx.textBaseline = 'middle';
-  ctx.fillStyle = PAL.coin; ctx.font = `bold ${Math.round(16 * punch)}px monospace`;
+  ctx.fillStyle = PAL.coin; ctx.font = `bold ${Math.round(16 * punch)}px monospace, "Malgun Gothic", sans-serif`;
   ctx.fillText('◈ ' + fmt(hud.moneyShown), 8, 13);
-  ctx.font = '9px monospace'; ctx.fillStyle = PAL.cream;
-  ctx.fillText('REP ' + Math.floor(state.rep), 150, 8);
+  ctx.font = '9px monospace, "Malgun Gothic", sans-serif'; ctx.fillStyle = PAL.cream;
+  ctx.fillText('평판 ' + Math.floor(state.rep), 150, 8);
   if (state.starMult > 1) { ctx.fillStyle = PAL.star; ctx.fillText('★x' + state.starMult, 150, 18); }
   // live readouts: queue / satisfaction / plates
   let q = 0, sat = 0, seated = 0, dirty = 0;
@@ -53,9 +53,9 @@ export function drawHud(ctx, state, hud, time) {
   for (let i = 0; i < state.unlockedTables; i++) if (state.tables[i].state === 'DIRTY') dirty++;
   const avgSat = seated ? sat / seated : 1;
   ctx.fillStyle = PAL.cream; ctx.textAlign = 'right';
-  ctx.fillText('queue ' + q + '  plates ' + state.pass.length + '  dirty ' + dirty, PANEL_X - 8, 8);
+  ctx.fillText('대기 ' + q + '  접시 ' + state.pass.length + '  청소 ' + dirty, PANEL_X - 8, 8);
   ctx.fillStyle = avgSat > 0.7 ? PAL.good : avgSat > 0.4 ? PAL.coin : PAL.bad;
-  ctx.fillText('mood ' + Math.round(avgSat * 100) + '%', PANEL_X - 8, 18);
+  ctx.fillText('기분 ' + Math.round(avgSat * 100) + '%', PANEL_X - 8, 18);
 
   // ---- NEXT goal ring ----
   drawGoalRing(ctx, state, hud, time);
@@ -63,7 +63,7 @@ export function drawHud(ctx, state, hud, time) {
   // ---- shop ----
   ctx.fillStyle = 'rgba(15,10,23,0.6)'; ctx.fillRect(PANEL_X, 0, LOGICAL_W - PANEL_X, LOGICAL_H);
   ctx.textAlign = 'left';
-  ctx.fillStyle = PAL.cream; ctx.font = '8px monospace'; ctx.fillText('UPGRADES', PANEL_X + 6, 26);
+  ctx.fillStyle = PAL.cream; ctx.font = '8px monospace, "Malgun Gothic", sans-serif'; ctx.fillText('업그레이드', PANEL_X + 6, 26);
   hud.buttons = [];
   let y = BTN_Y0;
   for (const key of UPGRADE_ORDER) {
@@ -81,14 +81,14 @@ export function drawHud(ctx, state, hud, time) {
   ctx.strokeStyle = can ? PAL.star : '#3a3448';
   if (can) { ctx.lineWidth = 1 + Math.sin(time * 6) * 0.5; } else ctx.lineWidth = 1;
   ctx.strokeRect(pr.x + 0.5, pr.y + 0.5, pr.w - 1, pr.h - 1);
-  ctx.fillStyle = can ? PAL.star : '#6b6480'; ctx.font = 'bold 9px monospace'; ctx.textAlign = 'center';
-  ctx.fillText('★ FRANCHISE', pr.x + pr.w / 2, pr.y + 9);
-  ctx.font = '7px monospace';
-  ctx.fillText(can ? 'reset → x' + prestigeStars(state) + ' income' : 'at ◈' + fmt(C.PRESTIGE_THRESHOLD) + ' lifetime', pr.x + pr.w / 2, pr.y + 18);
+  ctx.fillStyle = can ? PAL.star : '#6b6480'; ctx.font = 'bold 9px monospace, "Malgun Gothic", sans-serif'; ctx.textAlign = 'center';
+  ctx.fillText('★ 프렌차이즈', pr.x + pr.w / 2, pr.y + 9);
+  ctx.font = '7px monospace, "Malgun Gothic", sans-serif';
+  ctx.fillText(can ? '리셋 → 수익 x' + prestigeStars(state) : '누적 ◈' + fmt(C.PRESTIGE_THRESHOLD) + ' 달성 시', pr.x + pr.w / 2, pr.y + 18);
 
   // controls hint (bottom-left, tiny)
-  ctx.textAlign = 'left'; ctx.fillStyle = 'rgba(230,220,192,0.5)'; ctx.font = '7px monospace';
-  ctx.fillText('WASD move · SPACE act · 1-7 buy · M mute', 8, LOGICAL_H - 8);
+  ctx.textAlign = 'left'; ctx.fillStyle = 'rgba(230,220,192,0.5)'; ctx.font = '7px monospace, "Malgun Gothic", sans-serif';
+  ctx.fillText('WASD 이동 · 가까이 가면 자동 처리 · 1-7 구매 · M 음소거', 8, LOGICAL_H - 8);
 
   if (hud.offline) drawOffline(ctx, hud);
 }
@@ -105,16 +105,16 @@ function drawShopButton(ctx, state, hud, r, time) {
     ctx.strokeRect(r.x + 0.5, r.y + 0.5, r.w - 1, r.h - 1);
   } else { ctx.strokeStyle = '#3a3448'; ctx.lineWidth = 1; ctx.strokeRect(r.x + 0.5, r.y + 0.5, r.w - 1, r.h - 1); }
   ctx.textAlign = 'left'; ctx.textBaseline = 'alphabetic';
-  ctx.fillStyle = maxed ? '#5a5470' : PAL.white; ctx.font = 'bold 8px monospace';
+  ctx.fillStyle = maxed ? '#5a5470' : PAL.white; ctx.font = 'bold 8px monospace, "Malgun Gothic", sans-serif';
   ctx.fillText(UPGRADE_LABEL[key], r.x + 5, r.y + 10);
   // level dots
   ctx.fillStyle = PAL.star;
   const lvl = state.levels[key];
   for (let i = 0; i < lvl; i++) ctx.fillRect(r.x + 5 + i * 4, r.y + 13, 3, 3);
   // cost
-  ctx.textAlign = 'right'; ctx.font = '8px monospace';
+  ctx.textAlign = 'right'; ctx.font = '8px monospace, "Malgun Gothic", sans-serif';
   ctx.fillStyle = maxed ? '#5a5470' : affordable ? PAL.good : PAL.bad;
-  ctx.fillText(maxed ? 'MAX' : '◈' + fmt(cost(state, key)), r.x + r.w - 5, r.y + 15);
+  ctx.fillText(maxed ? '최대' : '◈' + fmt(cost(state, key)), r.x + r.w - 5, r.y + 15);
 }
 
 function drawGoalRing(ctx, state, hud, time) {
@@ -126,10 +126,10 @@ function drawGoalRing(ctx, state, hud, time) {
   ctx.beginPath(); ctx.arc(cx, cy, R, 0, Math.PI * 2); ctx.stroke();
   ctx.strokeStyle = prog >= 1 ? PAL.good : PAL.coin;
   ctx.beginPath(); ctx.arc(cx, cy, R, -Math.PI / 2, -Math.PI / 2 + prog * Math.PI * 2); ctx.stroke();
-  ctx.textAlign = 'left'; ctx.textBaseline = 'middle'; ctx.font = '8px monospace';
-  ctx.fillStyle = PAL.cream; ctx.fillText('NEXT', cx + 14, cy - 5);
+  ctx.textAlign = 'left'; ctx.textBaseline = 'middle'; ctx.font = '8px monospace, "Malgun Gothic", sans-serif';
+  ctx.fillStyle = PAL.cream; ctx.fillText('다음', cx + 14, cy - 5);
   ctx.fillStyle = prog >= 1 ? PAL.good : PAL.white;
-  ctx.font = 'bold 8px monospace';
+  ctx.font = 'bold 8px monospace, "Malgun Gothic", sans-serif';
   ctx.fillText(UPGRADE_LABEL[key], cx + 14, cy + 5);
   if (prog >= 1) { ctx.fillStyle = PAL.star; ctx.fillText('▲', cx, cy + Math.sin(time * 8)); }
 }
@@ -172,16 +172,16 @@ function drawOffline(ctx, hud) {
   ctx.fillStyle = PAL.bg1; ctx.fillRect(x, y, w, h);
   ctx.strokeStyle = PAL.star; ctx.lineWidth = 2; ctx.strokeRect(x + 1, y + 1, w - 2, h - 2);
   ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
-  ctx.fillStyle = PAL.star; ctx.font = 'bold 12px monospace';
-  ctx.fillText('WHILE YOU WERE AWAY', x + w / 2, y + 18);
+  ctx.fillStyle = PAL.star; ctx.font = 'bold 12px monospace, "Malgun Gothic", sans-serif';
+  ctx.fillText('자리를 비운 동안', x + w / 2, y + 18);
   const mins = Math.floor(o.seconds / 60);
-  ctx.fillStyle = PAL.cream; ctx.font = '9px monospace';
-  ctx.fillText(mins >= 60 ? (mins / 60).toFixed(1) + ' hours' : mins + ' minutes', x + w / 2, y + 36);
-  ctx.fillStyle = PAL.coin; ctx.font = 'bold 16px monospace';
+  ctx.fillStyle = PAL.cream; ctx.font = '9px monospace, "Malgun Gothic", sans-serif';
+  ctx.fillText(mins >= 60 ? (mins / 60).toFixed(1) + '시간' : mins + '분', x + w / 2, y + 36);
+  ctx.fillStyle = PAL.coin; ctx.font = 'bold 16px monospace, "Malgun Gothic", sans-serif';
   ctx.fillText('+ ◈ ' + fmt(o.earned), x + w / 2, y + 56);
-  ctx.fillStyle = PAL.cream; ctx.font = '8px monospace';
-  ctx.fillText(o.served + ' customers served by your crew', x + w / 2, y + 74);
-  ctx.fillStyle = PAL.white; ctx.fillText('— click to continue —', x + w / 2, y + h - 10);
+  ctx.fillStyle = PAL.cream; ctx.font = '8px monospace, "Malgun Gothic", sans-serif';
+  ctx.fillText('직원들이 손님 ' + o.served + '명을 응대했습니다', x + w / 2, y + 74);
+  ctx.fillStyle = PAL.white; ctx.fillText('— 클릭해서 계속하기 —', x + w / 2, y + h - 10);
   ctx.globalAlpha = 1;
 }
 

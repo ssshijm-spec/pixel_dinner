@@ -49,7 +49,7 @@ BALANCE.md 참고.
 - 코요테 타임 수준의 관용: 상호작용에 단일 타일이 아니라 넉넉한 반경 사용.
 - 최대 `PLAYER_CARRY`개의 접시를 든다. 너무 빠르게 이동하다 장애물 근처에서
   놓으면 접시가 깨질 수 있다(`BREAK_CHANCE`) — 슬픈 사운드가 붙는 실제 실패.
-- 단일 상황 행동(`intent.act`): 가까운 것 중 가장 관련 있는 작업을 수행.
+- 행동 버튼 없음: 작업 반경 안에 있기만 하면 가장 관련 있는 작업이 자동 수행됨(§10).
 
 ### 손님  (`state.customers[]`)
 `{id, tableId, dish, x,y,px,py, state, timer, patience, sat}`
@@ -96,8 +96,8 @@ WANT_ORDER / WAIT_FOOD / WANT_BILL: 인내심 카운트다운; 0 도달 → RAGE
 | COLLECT     | WANT_BILL 손님                             | 돈 결제(+팁), → LEAVING                     |
 | CLEAN       | DIRTY 테이블                               | → FREE                                      |
 
-플레이어는 `act`를 누를 때(또는 인접 시 자동으로) 플레이어에게 가장 가까운
-자격 있는 작업을 수행한다. **수동 보너스:** 플레이어 작업 타이머는
+플레이어는 버튼 입력 없이, 작업 반경 안에 있는 매 틱마다 자신에게 가장 가까운
+자격 있는 작업을 자동 수행한다(§10). **수동 보너스:** 플레이어 작업 타이머는
 `MANUAL_SPEEDUP`(×0.7) 짧고 이동 속도도 더 빨라서, 손으로 하는 것이 직원을
 기다리는 것을 이긴다.
 
@@ -146,7 +146,15 @@ localStorage에 `{version, savedAt, state}`. `state.rngState`가 PRNG를 유지.
 
 ## 10. 입력 (`src/input/input.js`, `src/render/touch.js`)
 
-- 데스크톱: WASD/방향키 이동, SPACE/J/E 행동, 마우스 클릭은 상점으로.
-- 모바일/터치: 떠다니는 가상 조이스틱(왼쪽) + 꾹 누르는 ACT 버튼(오른쪽),
-  멀티터치로 동시 사용. 키보드와 동일한 movement/act intent로 합쳐지므로 sim
-  로직은 그대로. 상점 탭도 같은 pointer→onClick 경로.
+행동 버튼이 없다. **배치(위치)가 곧 입력**이다 — `state.player`가 작업 반경
+(`REACH_RADIUS`) 안에 있으면 매 틱 자동으로 그 작업이 수행된다
+(`src/sim/game.js`의 `playerAutoServe` / `playerAutoWork`, §3 참고). 그래서
+입력은 순수하게 **이동**만 담당한다:
+- 데스크톱: WASD/방향키 이동, 마우스 클릭은 상점으로.
+- 모바일/터치: 화면 아무 데나 드래그하는 가상 조이스틱 하나(왼쪽 영역),
+  상점 패널(`SHOP_X` 우측)은 탭으로 구매. 버튼을 누를 필요가 없으므로
+  터치 UI는 조이스틱뿐이다.
+- 순간적 작업(서빙/픽업/주문/수금)은 반경에 들어온 즉시 처리되고, 지속적 작업
+  (조리/청소)은 스토브/테이블 자체에 저장된 진행도(`stove.progress`,
+  `table.cleanProg`)에 머무는 동안 누적된다 — 자리를 떴다 돌아오면 이어서
+  진행된다.

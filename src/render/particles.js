@@ -25,12 +25,12 @@ export function emit(ps, ev, sx, sy, cam) {
     case 'seat': ps.puffs.push({ x: sx, y: sy - 4, life: 0, ttl: 0.35, r0: 1, r1: 7, color: 'rgba(255,255,255,0.35)' }); break;
     case 'pickup': ps.puffs.push({ x: sx, y: sy - 12, life: 0, ttl: 0.25, r0: 1, r1: 5, color: 'rgba(255,255,255,0.5)' }); break;
     case 'levelup':
-      ps.popups.push({ x: sx, y: sy, life: 0, ttl: 1.3, text: 'NEW!', color: PAL.star, size: 14 });
+      ps.popups.push({ x: sx, y: sy, life: 0, ttl: 1.3, text: '구매완료!', color: PAL.star, size: 14 });
       for (let i = 0; i < 16; i++) coinBurst(ps, sx, sy);
       if (cam) cam.shake = Math.min(6, cam.shake + 2);
       break;
     case 'prestige':
-      ps.popups.push({ x: sx, y: sy, life: 0, ttl: 2.2, text: '★ FRANCHISE ★', color: PAL.star, size: 18 });
+      ps.popups.push({ x: sx, y: sy, life: 0, ttl: 2.2, text: '★ 프렌차이즈 ★', color: PAL.star, size: 18 });
       for (let i = 0; i < 60; i++) coinBurst(ps, sx + (Math.random() * 120 - 60), sy - 40 - Math.random() * 30);
       if (cam) cam.shake = 6;
       break;
@@ -81,7 +81,7 @@ export function draw(ctx, ps) {
     const t = p.life / p.ttl;
     ctx.globalAlpha = t > 0.6 ? 1 - (t - 0.6) / 0.4 : 1;
     const pop = t < 0.2 ? easeOutCubic(t / 0.2) : 1;
-    ctx.font = `bold ${Math.round(p.size * (0.7 + 0.3 * pop))}px monospace`;
+    ctx.font = `bold ${Math.round(p.size * (0.7 + 0.3 * pop))}px monospace, "Malgun Gothic", sans-serif`;
     ctx.fillStyle = PAL.ink; ctx.fillText(p.text, p.x + 1, p.y + 1);
     ctx.fillStyle = p.color; ctx.fillText(p.text, p.x, p.y);
   }

@@ -7,8 +7,8 @@ import { prestigeReset } from './state.js';
 export const UPGRADE_ORDER = ['hireCook', 'hireWaiter', 'addTable', 'addStove', 'priceTier', 'staffSpeed', 'marketing'];
 
 export const UPGRADE_LABEL = {
-  hireCook: 'Hire Cook', hireWaiter: 'Hire Waiter', addTable: 'Add Table',
-  addStove: 'Add Stove', priceTier: 'Better Menu', staffSpeed: 'Faster Staff', marketing: 'Marketing',
+  hireCook: '요리사 고용', hireWaiter: '웨이터 고용', addTable: '테이블 추가',
+  addStove: '스토브 추가', priceTier: '메뉴 확장', staffSpeed: '직원 강화', marketing: '마케팅',
 };
 
 export function cost(state, key) {

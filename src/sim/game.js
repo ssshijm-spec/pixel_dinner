@@ -11,7 +11,7 @@ import { assignWaitingTickets, speedMult, cookStep } from './kitchen.js';
 import { applyTakeOrder, applyServe, applyCollect, applyClean } from './tasks.js';
 import { tableById, customerById, tileDist } from './util.js';
 
-export const EMPTY_INTENT = { mx: 0, my: 0, act: false };
+export const EMPTY_INTENT = { mx: 0, my: 0 };
 
 export function createNewGame(seed) {
   const state = createInitialState(seed);
@@ -72,17 +72,17 @@ function updatePlayer(state, intent, rng) {
   if (Math.abs(p.vx) > 0.05) p.facing = p.vx > 0 ? 1 : -1;
   p.moving = mag > 0.01;
 
-  const edge = intent.act && !p._prevAct;
-  let didInstant = false;
-  if (edge) didInstant = playerInstant(state, p, rng);
-  if (intent.act && !didInstant) playerHold(state, p, mult);
-  p._prevAct = intent.act;
+  // No act button: simply being within reach performs the task. Transient
+  // actions (serve/pickup/order/collect) resolve the instant you arrive;
+  // continuous ones (cook/clean) accumulate every tick you linger.
+  playerAutoServe(state, p, rng);
+  playerAutoWork(state, p, mult);
 }
 
 function withinReach(p, tx, ty) { return tileDist(p.x, p.y, tx, ty) <= C.REACH_RADIUS; }
 
-// Instant, tap actions (serve → pickup → take order → collect), by priority.
-function playerInstant(state, p, rng) {
+// Transient tasks (serve → pickup → take order → collect), by priority.
+function playerAutoServe(state, p, rng) {
   // 1. serve a carried plate to its table
   for (let i = 0; i < p.carry.length; i++) {
     const plate = p.carry[i];
@@ -120,8 +120,9 @@ function playerInstant(state, p, rng) {
   return false;
 }
 
-// Held actions: cooking at a stove, or scrubbing a dirty table (manual = faster).
-function playerHold(state, p, mult) {
+// Continuous tasks: cooking at a stove, or scrubbing a dirty table. Progress is
+// stored on the stove/table itself, so walking away and back resumes it.
+function playerAutoWork(state, p, mult) {
   // cook the nearest stove that has a ticket
   let stove = null, bd = Infinity;
   for (let i = 0; i < state.unlockedStoves; i++) {
