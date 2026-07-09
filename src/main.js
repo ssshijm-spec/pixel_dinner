@@ -9,7 +9,8 @@ import { LOGICAL_W, LOGICAL_H, ORIGIN_X, ORIGIN_Y, makeCamera, updateCamera, sha
 import { drawWorld } from './render/renderer.js';
 import { makeHud, updateHud, drawHud, drawHints, hudClick, setOffline } from './render/hud.js';
 import { makeParticles, emit as emitParticle, update as updateParticles, draw as drawParticles, coinShower } from './render/particles.js';
-import { makeInput, getIntent } from './input/input.js';
+import { makeInput, getIntent, getTouch } from './input/input.js';
+import { drawTouch } from './render/touch.js';
 import { initAudio, resumeAudio, toggleMute, playFx } from './audio/audio.js';
 import { saveGame, loadGame } from './save/save.js';
 
@@ -20,7 +21,9 @@ ctx.imageSmoothingEnabled = false;
 ctx.lineJoin = 'miter';
 let scale = 1;
 function resize() {
-  scale = Math.max(1, Math.floor(Math.min(innerWidth / LOGICAL_W, innerHeight / LOGICAL_H)));
+  const fit = Math.min(innerWidth / LOGICAL_W, innerHeight / LOGICAL_H);
+  // crisp integer scale on desktop; fractional fit on small/mobile screens
+  scale = fit >= 1 ? Math.floor(fit) : fit;
   canvas.style.width = LOGICAL_W * scale + 'px';
   canvas.style.height = LOGICAL_H * scale + 'px';
   ctx.imageSmoothingEnabled = false;
@@ -122,6 +125,7 @@ function frame(now) {
   drawParticles(ctx, ps);
   ctx.restore();
   drawHud(ctx, state, hud, t);
+  drawTouch(ctx, getTouch(), t);
 
   requestAnimationFrame(frame);
 }

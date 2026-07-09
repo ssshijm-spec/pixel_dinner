@@ -17,12 +17,20 @@
     box-shadow: 0 0 0 2px #000, 0 8px 40px rgba(0,0,0,0.6);
     background: #161320;
   }
-  #boot { position: fixed; bottom: 8px; font-size: 11px; opacity: 0.4; }
+  #boot { position: fixed; bottom: 8px; font-size: 11px; opacity: 0.4; text-align: center; padding: 0 12px; }
+  /* Portrait phones: nudge to landscape (game is 16:9). */
+  #rotate { display: none; position: fixed; inset: 0; z-index: 10;
+    background: #100c18; color: #e6dcc0; align-items: center; justify-content: center;
+    flex-direction: column; gap: 12px; font-size: 15px; text-align: center; }
+  #rotate .icon { font-size: 40px; animation: spin 2.4s ease-in-out infinite; }
+  @keyframes spin { 0%,45% { transform: rotate(0); } 55%,100% { transform: rotate(90deg); } }
+  @media (orientation: portrait) and (pointer: coarse) { #rotate { display: flex; } }
 </style>
 </head>
 <body>
   <canvas id="game" width="512" height="288"></canvas>
-  <div id="boot">click / press any key to start sound · WASD move · SPACE act</div>
+  <div id="rotate"><div class="icon">📱</div><div>가로로 돌려주세요<br>Rotate to landscape</div></div>
+  <div id="boot">tap / press a key for sound · drag to move · ACT button to act</div>
   <script type="module" src="./src/main.js"></script>
   <script>window.addEventListener('pointerdown', () => { const b = document.getElementById('boot'); if (b) b.style.display = 'none'; }, { once: true });</script>
 </body>
