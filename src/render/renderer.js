@@ -5,7 +5,7 @@ import { tileToScreen } from '../core/iso.js';
 import { lerp } from '../core/math.js';
 import * as C from '../sim/constants.js';
 import { LOGICAL_W, LOGICAL_H, ORIGIN_X, ORIGIN_Y } from './camera.js';
-import { drawFloorTile, drawTable, drawStove, drawChar, drawPlate, drawBubble } from './sprites.js';
+import { drawFloorTile, drawTable, drawStove, drawChar, drawPlate, drawBubble, outlinedText } from './sprites.js';
 
 const S = (tx, ty) => tileToScreen(tx, ty, ORIGIN_X, ORIGIN_Y);
 
@@ -30,12 +30,13 @@ export function drawWorld(ctx, state, alpha, time) {
     const st = state.stoves[i]; const p = S(st.tx, st.ty);
     draws.push({ d: st.tx + st.ty, fn: () => drawStove(ctx, p.x, p.y, !!st.ticket, st.progress) });
   }
-  // pass counter + ready plates
+  // pass counter + ready plates (widened to fit the larger plate icons, 4 per
+  // row with a second row if orders back up further than that)
   { const p = S(C.PASS.tx, C.PASS.ty);
     draws.push({ d: C.PASS.tx + C.PASS.ty - 0.3, fn: () => {
-      ctx.fillStyle = PAL.steel; ctx.fillRect(p.x - 16, p.y - 6, 32, 6);
-      ctx.fillStyle = '#5a6070'; ctx.fillRect(p.x - 16, p.y, 32, 3);
-      state.pass.forEach((pl, k) => drawPlate(ctx, p.x - 12 + (k % 5) * 6, p.y - 6, pl.dish.color));
+      ctx.fillStyle = PAL.steel; ctx.fillRect(p.x - 23, p.y - 7, 46, 7);
+      ctx.fillStyle = '#5a6070'; ctx.fillRect(p.x - 23, p.y, 46, 3);
+      state.pass.forEach((pl, k) => drawPlate(ctx, p.x - 17 + (k % 4) * 11, p.y - 8 - Math.floor(k / 4) * 10, pl.dish.color));
     } });
   }
   // tables
@@ -52,7 +53,7 @@ export function drawWorld(ctx, state, alpha, time) {
     draws.push({ d: tx + ty + 0.05, fn: () => drawChar(ctx, p.x, p.y, {
       tint: c.tint, facing: c.facing, kind: 'customer', bob: moving ? time * 4 + c.id : 0, carry: null,
     }) });
-    if (c.bubble) bubbles.push({ d: tx + ty, fn: () => drawBubble(ctx, p.x, p.y, c.bubble, urg) });
+    if (c.bubble) bubbles.push({ d: tx + ty, fn: () => drawBubble(ctx, p.x, p.y, c.bubble, urg, c.dish.color) });
   }
   // staff
   for (const s of state.staff) {
@@ -73,7 +74,7 @@ export function drawWorld(ctx, state, alpha, time) {
       carry: pl.carry.length ? pl.carry[pl.carry.length - 1].dish.color : null,
     }) });
     // carry count pip
-    if (pl.carry.length > 1) bubbles.push({ d: 999, fn: () => { ctx.fillStyle = PAL.white; ctx.font = '7px monospace'; ctx.textAlign = 'center'; ctx.fillText('x' + pl.carry.length, p.x + 8, p.y - 22); } });
+    if (pl.carry.length > 1) bubbles.push({ d: 999, fn: () => { ctx.textAlign = 'center'; ctx.textBaseline = 'middle'; outlinedText(ctx, 'x' + pl.carry.length, p.x + 11, p.y - 24, PAL.white, 'bold 9px monospace, "Malgun Gothic", sans-serif'); } });
   }
 
   draws.sort((a, b) => a.d - b.d);

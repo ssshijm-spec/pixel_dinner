@@ -11,12 +11,16 @@
     font-family: monospace, "Malgun Gothic", sans-serif; color: #e6dcc0;
     touch-action: none; user-select: none;
   }
+  #stage { position: relative; box-shadow: 0 0 0 2px #000, 0 8px 40px rgba(0,0,0,0.6); }
   #game {
+    display: block;
     image-rendering: pixelated;
     image-rendering: crisp-edges;
-    box-shadow: 0 0 0 2px #000, 0 8px 40px rgba(0,0,0,0.6);
     background: #161320;
   }
+  /* UI overlay: native-resolution canvas (no pixelated upscaling) so HUD/
+     bubble/popup text stays crisp regardless of the pixel-art world's scale. */
+  #hud { position: absolute; left: 0; top: 0; pointer-events: none; }
   #boot { position: fixed; bottom: 8px; font-size: 11px; opacity: 0.4; text-align: center; padding: 0 12px; }
   /* Portrait phones: nudge to landscape (game is 16:9). */
   #rotate { display: none; position: fixed; inset: 0; z-index: 10;
@@ -28,7 +32,10 @@
 </style>
 </head>
 <body>
-  <canvas id="game" width="512" height="288"></canvas>
+  <div id="stage">
+    <canvas id="game" width="512" height="288"></canvas>
+    <canvas id="hud"></canvas>
+  </div>
   <div id="rotate"><div class="icon">📱</div><div>가로로 돌려주세요</div></div>
   <div id="boot">탭하거나 키를 누르면 소리 켜짐 · 드래그로 이동 · 가까이 가면 자동으로 처리됩니다</div>
   <script type="module" src="./src/main.js"></script>

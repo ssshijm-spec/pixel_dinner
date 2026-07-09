@@ -11,18 +11,24 @@ export const DOOR = { tx: 5, ty: 8.4 };
 export const PASS = { tx: 5, ty: 1 }; // pickup counter
 export const KITCHEN_HOME = { tx: 5, ty: 0.2 }; // where idle cooks wait
 
-// Table slots, in unlock order (nearest-to-door & spread out first).
+// Table slots: a uniform 2-row x 4-column grid, spaced generously (~43-54px on
+// screen between any two neighbors) so the larger table sprites (SPEC render
+// sizing) never touch even with all 8 unlocked at once. Unlock order starts
+// with the two columns nearest the kitchen, then spreads outward.
 export const TABLE_SLOTS = [
-  { tx: 3, ty: 4 }, { tx: 7, ty: 4 },
-  { tx: 3, ty: 6 }, { tx: 7, ty: 6 },
-  { tx: 5, ty: 4 }, { tx: 5, ty: 6 },
-  { tx: 1.5, ty: 5 }, { tx: 8.5, ty: 5 },
+  { tx: 3.4, ty: 3.5 }, { tx: 6.6, ty: 3.5 },
+  { tx: 3.4, ty: 6.5 }, { tx: 6.6, ty: 6.5 },
+  { tx: 1, ty: 3.5 }, { tx: 9, ty: 3.5 },
+  { tx: 1, ty: 6.5 }, { tx: 9, ty: 6.5 },
 ];
-// Stove slots along the kitchen row, in unlock order.
+// Stove slots along the kitchen row, 3 per side of the pass counter with even
+// ~22-29px screen spacing so the wider stove sprites clear both each other and
+// the pass. Unlock order starts with the two nearest the pass (shortest
+// cook→pass travel), then spreads outward.
 export const STOVE_SLOTS = [
-  { tx: 2, ty: 1 }, { tx: 8, ty: 1 },
-  { tx: 3.2, ty: 1 }, { tx: 6.8, ty: 1 },
-  { tx: 1, ty: 1 }, { tx: 9.6, ty: 1 },
+  { tx: 3.0, ty: 1 }, { tx: 7.0, ty: 1 },
+  { tx: 1.7, ty: 1 }, { tx: 8.3, ty: 1 },
+  { tx: 0.2, ty: 1 }, { tx: 9.8, ty: 1 },
 ];
 export const IDLE_WAIT = { tx: 5, ty: 7.4 }; // where idle waiters loiter
 

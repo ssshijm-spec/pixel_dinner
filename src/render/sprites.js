@@ -16,6 +16,18 @@ function baked(key, w, h, draw) {
 
 const px = (g, x, y, w, h, c) => { g.fillStyle = c; g.fillRect(x | 0, y | 0, w | 0, h | 0); };
 
+// Text with a 1px dark outline so small pixel-font glyphs stay legible against
+// any background. Caller sets textAlign/textBaseline beforehand — this only
+// touches font and fillStyle so it composes with left/right/center callers.
+export function outlinedText(ctx, text, x, y, fillColor, font) {
+  ctx.font = font;
+  ctx.fillStyle = PAL.ink;
+  ctx.fillText(text, x - 1, y); ctx.fillText(text, x + 1, y);
+  ctx.fillText(text, x, y - 1); ctx.fillText(text, x, y + 1);
+  ctx.fillStyle = fillColor;
+  ctx.fillText(text, x, y);
+}
+
 // ---- Floor diamond ---------------------------------------------------------
 function floorTile(variant) {
   return baked('floor' + variant, 34, 20, (g) => {
@@ -36,60 +48,76 @@ export function drawFloorTile(ctx, sx, sy, variant) {
 }
 
 // ---- Table -----------------------------------------------------------------
+// Sized for the 2x4 TABLE_SLOTS grid (constants.js), which keeps ≥43px between
+// any two neighbors — safe margin for this ~30px-wide top.
 export function drawTable(ctx, sx, sy, state, cleanProg) {
   // legs
-  px(ctx, sx - 9, sy - 2, 2, 6, PAL.tableLeg);
-  px(ctx, sx + 7, sy - 2, 2, 6, PAL.tableLeg);
+  px(ctx, sx - 11, sy - 2, 3, 8, PAL.tableLeg);
+  px(ctx, sx + 8, sy - 2, 3, 8, PAL.tableLeg);
   // top (iso-ish slab)
   const top = state === 'DIRTY' ? PAL.tableDirty : PAL.tableTop;
   ctx.fillStyle = top;
   ctx.beginPath();
-  ctx.moveTo(sx, sy - 12); ctx.lineTo(sx + 12, sy - 6); ctx.lineTo(sx, sy); ctx.lineTo(sx - 12, sy - 6); ctx.closePath(); ctx.fill();
-  px(ctx, sx - 12, sy - 6, 24, 2, PAL.tableLeg); // rim shadow
+  ctx.moveTo(sx, sy - 15); ctx.lineTo(sx + 15, sy - 7.5); ctx.lineTo(sx, sy); ctx.lineTo(sx - 15, sy - 7.5); ctx.closePath(); ctx.fill();
+  ctx.strokeStyle = shade(top, 1.2); ctx.lineWidth = 1;
+  ctx.beginPath(); ctx.moveTo(sx, sy - 15); ctx.lineTo(sx + 15, sy - 7.5); ctx.stroke();
+  px(ctx, sx - 15, sy - 8, 30, 2, PAL.tableLeg); // rim shadow
   if (state === 'DIRTY') {
     // messy plates
-    px(ctx, sx - 5, sy - 8, 4, 3, PAL.cream);
-    px(ctx, sx + 2, sy - 6, 3, 2, PAL.bad);
-    if (cleanProg) { px(ctx, sx - 10, sy - 11, Math.round(20 * cleanProg), 1, PAL.good); }
+    px(ctx, sx - 6, sy - 11, 5, 4, PAL.cream);
+    px(ctx, sx + 2, sy - 9, 4, 3, PAL.bad);
+    if (cleanProg) { px(ctx, sx - 13, sy - 15, Math.round(26 * cleanProg), 2, PAL.good); }
   }
 }
 
 // ---- Stove -----------------------------------------------------------------
+// Sized for STOVE_SLOTS (constants.js): 3-per-side of the pass, ≥22px apart —
+// grown mostly in height (more headroom above the kitchen row) so the wider
+// footprint stays safely clear of neighbors and the pass counter.
 export function drawStove(ctx, sx, sy, active, progress) {
-  px(ctx, sx - 9, sy - 12, 18, 12, PAL.stove);
-  px(ctx, sx - 9, sy - 12, 18, 2, PAL.steel);
+  px(ctx, sx - 10, sy - 15, 20, 15, PAL.stove);
+  px(ctx, sx - 10, sy - 15, 20, 2, PAL.steel);
   // burners
-  px(ctx, sx - 6, sy - 9, 5, 4, active ? PAL.stoveHot : '#22242c');
-  px(ctx, sx + 2, sy - 9, 5, 4, active ? PAL.stoveHot : '#22242c');
+  px(ctx, sx - 7, sy - 11, 6, 5, active ? PAL.stoveHot : '#22242c');
+  px(ctx, sx + 1, sy - 11, 6, 5, active ? PAL.stoveHot : '#22242c');
   if (active) {
-    px(ctx, sx - 5, sy - 13, 3, 3, PAL.flame);
-    px(ctx, sx + 3, sy - 12, 2, 2, PAL.flame);
+    px(ctx, sx - 6, sy - 17, 4, 4, PAL.flame);
+    px(ctx, sx + 4, sy - 16, 3, 3, PAL.flame);
     // progress bar
-    px(ctx, sx - 9, sy - 16, 18, 2, '#000');
-    px(ctx, sx - 9, sy - 16, Math.round(18 * progress), 2, PAL.good);
+    px(ctx, sx - 10, sy - 20, 20, 3, '#000');
+    px(ctx, sx - 10, sy - 20, Math.round(20 * progress), 3, PAL.good);
   }
 }
 
-// ---- Food / plate icon -----------------------------------------------------
+// ---- Food / plate icon -------------------------------------------------
+// This is the primary "what dish is this?" readout (pass counter, carried
+// icon, order/food bubbles) so it renders large with a rim + highlight rather
+// than a flat color chip.
 export function drawPlate(ctx, sx, sy, colorKey) {
-  px(ctx, sx - 4, sy - 1, 8, 2, PAL.cream);
-  px(ctx, sx - 3, sy - 3, 6, 3, PAL[colorKey] || PAL.food1);
+  px(ctx, sx - 7, sy - 1, 14, 3, PAL.cream);
+  px(ctx, sx - 7, sy - 1, 14, 1, shade(PAL.cream, 1.1));
+  const c = PAL[colorKey] || PAL.food1;
+  px(ctx, sx - 5, sy - 6, 10, 6, c);
+  px(ctx, sx - 4, sy - 6, 6, 2, shade(c, 1.3));
 }
 
 // ---- Bubble ----------------------------------------------------------------
-export function drawBubble(ctx, sx, sy, kind, urgency) {
-  const y = sy - 28;
+// dishColor: when kind === 'food', the customer's actual ordered dish color
+// (state.customers[].dish.color) — shows what they're waiting for, not a
+// generic placeholder.
+export function drawBubble(ctx, sx, sy, kind, urgency, dishColor) {
+  const y = sy - 32;
   const bg = urgency > 0.6 ? '#ffd9d0' : PAL.white;
   ctx.fillStyle = bg;
-  roundRect(ctx, sx - 7, y - 8, 14, 12, 3); ctx.fill();
-  px(ctx, sx - 1, y + 4, 2, 3, bg); // tail
-  ctx.fillStyle = PAL.ink;
-  ctx.font = '8px monospace'; ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
-  const glyph = { order: '?', bill: '$', wait: '…', eat: '~', angry: '!', food: '' }[kind] || '?';
-  if (kind === 'food') { drawPlate(ctx, sx, y - 1, 'food2'); }
-  else if (kind === 'bill') { ctx.fillStyle = PAL.coinEdge; ctx.fillText('$', sx, y - 1); }
-  else if (kind === 'angry') { ctx.fillStyle = PAL.bad; ctx.fillText('!', sx, y - 1); }
-  else ctx.fillText(glyph, sx, y - 1);
+  roundRect(ctx, sx - 11, y - 10, 22, 18, 4); ctx.fill();
+  ctx.strokeStyle = 'rgba(15,10,23,0.3)'; ctx.lineWidth = 1;
+  roundRect(ctx, sx - 11, y - 10, 22, 18, 4); ctx.stroke();
+  px(ctx, sx - 2, y + 7, 4, 4, bg); // tail
+  if (kind === 'food') { drawPlate(ctx, sx, y - 1, dishColor || 'food1'); return; }
+  const glyph = { order: '?', bill: '$', wait: '…', eat: '~', angry: '!' }[kind] || '?';
+  const glyphColor = kind === 'bill' ? PAL.coinEdge : kind === 'angry' ? PAL.bad : PAL.ink;
+  ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
+  outlinedText(ctx, glyph, sx, y - 1, glyphColor, 'bold 13px monospace, "Malgun Gothic", sans-serif');
 }
 function roundRect(ctx, x, y, w, h, r) {
   ctx.beginPath();
@@ -137,7 +165,7 @@ export function drawChar(ctx, sx, sy, o) {
   px(ctx, sx + (f > 0 ? 1 : -2), hy + 2, 1, 2, PAL.ink);
 
   // carried plate
-  if (o.carry) drawPlate(ctx, sx + f * 5, by + 1, o.carry);
+  if (o.carry) drawPlate(ctx, sx + f * 8, by, o.carry);
 }
 
 function shade(hex, k) {

@@ -9,7 +9,7 @@ export function emit(ps, ev, sx, sy, cam) {
   switch (ev.t) {
     case 'money': {
       const big = ev.amount >= 30;
-      ps.popups.push({ x: sx, y: sy - 16, life: 0, ttl: 1.0, text: '+' + ev.amount, color: ev.sat > 0.75 ? PAL.good : PAL.coin, size: big ? 12 : 9 });
+      ps.popups.push({ x: sx, y: sy - 16, life: 0, ttl: 1.0, text: '+' + ev.amount, color: ev.sat > 0.75 ? PAL.good : PAL.coin, size: big ? 14 : 11 });
       const n = Math.min(14, 3 + Math.floor(ev.amount / 5));
       for (let i = 0; i < n; i++) coinBurst(ps, sx, sy - 8);
       if (cam) cam.shake = Math.min(6, cam.shake + (big ? 1.6 : 0.7));
@@ -18,19 +18,19 @@ export function emit(ps, ev, sx, sy, cam) {
     case 'plate': ps.puffs.push({ x: sx, y: sy - 12, life: 0, ttl: 0.4, r0: 2, r1: 8, color: 'rgba(255,255,255,0.7)' }); break;
     case 'clean': ps.puffs.push({ x: sx, y: sy - 6, life: 0, ttl: 0.5, r0: 3, r1: 12, color: 'rgba(180,220,140,0.6)' }); break;
     case 'rage':
-      ps.popups.push({ x: sx, y: sy - 16, life: 0, ttl: 0.9, text: '✗', color: PAL.bad, size: 12 });
+      ps.popups.push({ x: sx, y: sy - 16, life: 0, ttl: 0.9, text: '✗', color: PAL.bad, size: 14 });
       ps.puffs.push({ x: sx, y: sy - 10, life: 0, ttl: 0.5, r0: 2, r1: 14, color: 'rgba(224,80,58,0.5)' });
       if (cam) cam.shake = Math.min(6, cam.shake + 2.2);
       break;
     case 'seat': ps.puffs.push({ x: sx, y: sy - 4, life: 0, ttl: 0.35, r0: 1, r1: 7, color: 'rgba(255,255,255,0.35)' }); break;
     case 'pickup': ps.puffs.push({ x: sx, y: sy - 12, life: 0, ttl: 0.25, r0: 1, r1: 5, color: 'rgba(255,255,255,0.5)' }); break;
     case 'levelup':
-      ps.popups.push({ x: sx, y: sy, life: 0, ttl: 1.3, text: '구매완료!', color: PAL.star, size: 14 });
+      ps.popups.push({ x: sx, y: sy, life: 0, ttl: 1.3, text: '구매완료!', color: PAL.star, size: 16 });
       for (let i = 0; i < 16; i++) coinBurst(ps, sx, sy);
       if (cam) cam.shake = Math.min(6, cam.shake + 2);
       break;
     case 'prestige':
-      ps.popups.push({ x: sx, y: sy, life: 0, ttl: 2.2, text: '★ 프렌차이즈 ★', color: PAL.star, size: 18 });
+      ps.popups.push({ x: sx, y: sy, life: 0, ttl: 2.2, text: '★ 프렌차이즈 ★', color: PAL.star, size: 20 });
       for (let i = 0; i < 60; i++) coinBurst(ps, sx + (Math.random() * 120 - 60), sy - 40 - Math.random() * 30);
       if (cam) cam.shake = 6;
       break;
@@ -61,7 +61,9 @@ export function update(ps, dt) {
   for (const p of ps.popups) p.y -= 14 * dt;
 }
 
-export function draw(ctx, ps) {
+// Coins & dust puffs: small blocky pixel-art shapes, drawn on the low-res
+// world canvas (the shake/nearest-neighbor look suits them).
+export function drawFx(ctx, ps) {
   for (const p of ps.puffs) {
     const t = p.life / p.ttl;
     ctx.globalAlpha = 1 - t;
@@ -76,6 +78,11 @@ export function draw(ctx, ps) {
     ctx.fillStyle = PAL.coinEdge; ctx.fillRect(Math.round(c.x) - 1, Math.round(c.y) + 1, 3, 1);
   }
   ctx.globalAlpha = 1;
+}
+
+// Number/text popups: drawn on the crisp HUD overlay canvas (native pixel
+// density, not nearest-neighbor upscaled) so they never look mushy.
+export function drawPopups(ctx, ps) {
   ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
   for (const p of ps.popups) {
     const t = p.life / p.ttl;
@@ -87,3 +94,7 @@ export function draw(ctx, ps) {
   }
   ctx.globalAlpha = 1;
 }
+
+// Convenience: both passes on one ctx (used when there's no separate crisp
+// overlay, e.g. tooling).
+export function draw(ctx, ps) { drawFx(ctx, ps); drawPopups(ctx, ps); }

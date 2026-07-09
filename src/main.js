@@ -8,25 +8,44 @@ import { buy, doPrestige, canPrestige, UPGRADE_ORDER } from './sim/upgrades.js';
 import { LOGICAL_W, LOGICAL_H, ORIGIN_X, ORIGIN_Y, makeCamera, updateCamera, shakeOffset } from './render/camera.js';
 import { drawWorld } from './render/renderer.js';
 import { makeHud, updateHud, drawHud, drawHints, hudClick, setOffline } from './render/hud.js';
-import { makeParticles, emit as emitParticle, update as updateParticles, draw as drawParticles, coinShower } from './render/particles.js';
+import { makeParticles, emit as emitParticle, update as updateParticles, drawFx, drawPopups, coinShower } from './render/particles.js';
 import { makeInput, getIntent, getTouch } from './input/input.js';
 import { drawTouch } from './render/touch.js';
 import { initAudio, resumeAudio, toggleMute, playFx } from './audio/audio.js';
 import { saveGame, loadGame } from './save/save.js';
 
+// Two-canvas setup: #game is the low-res pixel-art world (nearest-neighbor
+// upscaled via CSS), #hud is a same-size overlay backed at native device
+// resolution so panel text, bubbles-in-progress popups, etc. render crisp
+// instead of inheriting the world canvas's blocky upscale.
 const canvas = document.getElementById('game');
 const ctx = canvas.getContext('2d');
 canvas.width = LOGICAL_W; canvas.height = LOGICAL_H;
 ctx.imageSmoothingEnabled = false;
 ctx.lineJoin = 'miter';
+
+const hudCanvas = document.getElementById('hud');
+const hctx = hudCanvas.getContext('2d');
+
 let scale = 1;
 function resize() {
   const fit = Math.min(innerWidth / LOGICAL_W, innerHeight / LOGICAL_H);
   // crisp integer scale on desktop; fractional fit on small/mobile screens
   scale = fit >= 1 ? Math.floor(fit) : fit;
-  canvas.style.width = LOGICAL_W * scale + 'px';
-  canvas.style.height = LOGICAL_H * scale + 'px';
+  const cssW = LOGICAL_W * scale, cssH = LOGICAL_H * scale;
+  canvas.style.width = cssW + 'px';
+  canvas.style.height = cssH + 'px';
   ctx.imageSmoothingEnabled = false;
+
+  const dpr = Math.min(window.devicePixelRatio || 1, 2);
+  hudCanvas.width = Math.round(cssW * dpr);
+  hudCanvas.height = Math.round(cssH * dpr);
+  hudCanvas.style.width = cssW + 'px';
+  hudCanvas.style.height = cssH + 'px';
+  // logical (0..LOGICAL_W, 0..LOGICAL_H) coordinates → native hud pixels, so
+  // every hud.js/particles.js draw call is unchanged, just rendered crisp.
+  hctx.setTransform(scale * dpr, 0, 0, scale * dpr, 0, 0);
+  hctx.imageSmoothingEnabled = true;
 }
 addEventListener('resize', resize); resize();
 
@@ -122,10 +141,17 @@ function frame(now) {
   ctx.translate(Math.round(so.x), Math.round(so.y));
   drawWorld(ctx, state, alpha, t);
   drawHints(ctx, state, t);
-  drawParticles(ctx, ps);
+  drawFx(ctx, ps); // coins/puffs: blocky pixel-art shapes, fine at world res
   ctx.restore();
-  drawHud(ctx, state, hud, t);
   drawTouch(ctx, getTouch(), t);
+
+  // crisp overlay: text-bearing draws only, at native pixel density
+  hctx.clearRect(0, 0, LOGICAL_W, LOGICAL_H);
+  hctx.save();
+  hctx.translate(so.x, so.y);
+  drawPopups(hctx, ps);
+  hctx.restore();
+  drawHud(hctx, state, hud, t);
 
   requestAnimationFrame(frame);
 }
